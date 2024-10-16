@@ -1,0 +1,6 @@
+results/*
+docker/*
+data/*
+bin/software/*
+.snakemake/*
+bin/.*
