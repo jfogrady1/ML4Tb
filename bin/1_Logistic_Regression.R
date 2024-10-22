@@ -10,6 +10,7 @@ library(ggplot2)
 library(magrittr)
 library(vsn)
 library(nmf)
+library(fastICA)
 library("boot")
 set.seed(12789)
 
@@ -199,6 +200,19 @@ meanSdPlot(assay(vstNormalizedExpressionDataForTest))
 train_counts_normalised  <- assay(vstNormalizedExpressionDataForTrain)
 test_counts_normalised <- assay(vstNormalizedExpressionDataForTest)
 
+# Apply the MAD function row-wise (across genes) - use 1 for this
+mad_values <- apply(as.matrix(train_counts), 1, mad)
+
+# Step 3: Create a data frame that combines gene names (row names) and MAD values
+mad_df <- data.frame(gene = rownames(as.matrix(train_counts)), mad = mad_values)
+
+
+# Step 4: Sort the data frame by MAD values in descending order
+mad_df_sorted <- mad_df %>% arrange(desc(mad)) %>% as.data.frame()
+
+top_genes <- mad_df_sorted[1:8000,]
+head(top_genes)
+
 
 
 
@@ -217,11 +231,13 @@ results_logistic_genes_l.se <- data.frame()
 list_of_fits <- list()
 
 # Perform logistic regression for various regularisation paramaters.
-for(i in 0:10) {
+for(i in 0:10) { # Here using different alpha paramaters
   print(i)
 
   # Save name
   fit.name <- paste0("alpha", i/10)
+
+
   list_of_fits[[fit.name]] <- cv.glmnet(train_counts_normalised, train_labels$Condition, type.measure="class", alpha = i/10, family = "binomial", foldid = foldid_train)
 
   # Save model
@@ -325,19 +341,9 @@ View(results_logistic_genes_l.se)
 ################################################################################
 ################################################################################
 
-# Apply the MAD function row-wise (across genes) - use 1 for this
-mad_values <- apply(as.matrix(train_counts), 1, mad)
 
-# Step 3: Create a data frame that combines gene names (row names) and MAD values
-mad_df <- data.frame(gene = rownames(as.matrix(train_counts)), mad = mad_values)
-
-
-# Step 4: Sort the data frame by MAD values in descending order
-mad_df_sorted <- mad_df %>% arrange(desc(mad)) %>% as.data.frame()
-
-top_genes <- mad_df_sorted[1:8000,]
-
-
+train_counts_normalised <- train_counts_normalised[,top_genes$gene]
+test_counts_normalised <- test_counts_normalised[,top_genes$gene]
 
 
 
@@ -364,9 +370,6 @@ PCAForQTL::makeScreePlot(prcompResult,labels=c("Elbow","BE"),values=c(K_elbow,K_
 
 
 
-
-# Just do it again
-prcompResult <- prcomp(train_counts_normalised, center = TRUE, scale. = FALSE)
 
 train_labels$Condition
 # Predict the normalised
@@ -396,7 +399,6 @@ PCA_cv_results <- list()
 
 # Save the values for train data set
 
-head(test_data)
 dim(train_PCA_predict)
 PCA_results <- data.frame()
 PCA_list_of_fits <- list()
@@ -409,8 +411,8 @@ for (n in 1:dim(train_PCA_predict)[1]) {
   PCA_train_specificity_values <- c()
   PCA_train_precision_values <- c()
   PCA_train_recall_values <- c()
-  PCA_train_Pos_pred_value_values <- c()
-  PCA_train_Neg_pred_value_values <- c()
+  PCA_train_Pos_pred_value <- c()
+  PCA_train_Neg_pred_value <- c()
   PCA_train_F1 <- c()
   for (i in 1:K) {
     # Train on all data except the ith fold, and test on the ith fold
@@ -455,15 +457,13 @@ for (n in 1:dim(train_PCA_predict)[1]) {
   specificity <- mean(PCA_train_specificity_values)
   precision <- mean(PCA_train_precision_values)
   recall <- mean(PCA_train_recall_values)
-  Pos_pred_value <- mean(PCA_train_Pos_pred_value_values)
-  Neg_pred_value <- mean(PCA_train_Neg_pred_value_values)
+  Pos_pred_value <- mean(PCA_train_Pos_pred_value)
+  Neg_pred_value <- mean(PCA_train_Neg_pred_value)
   F1 <- mean(PCA_train_F1)
 
   temp <- data.frame(Comparison = "Training_PCA", number_of_PCs = n, Accuracy = accuracy, Sensitivity = sensitivity, Specificity = specificity, Precision = precision, Recall = recall, Pos_pred_value = Pos_pred_value, Neg_pred_value = Neg_pred_value, F1 = F1)
   PCA_results <- rbind(PCA_results, temp)
 }
-
-
 
 # Now predict on the actual dataset
 
@@ -472,13 +472,14 @@ for (n in 1:dim(train_PCA_predict)[1]) {
 # Predict the score in the test
 test_PCA_predict <- predict(prcompResult, test_counts_normalised)
 test_PCA_predict <- data.frame(test_PCA_predict)
-glm_fit <- glm(Condition ~ ., data = train_data[,c(1:19, length(colnames(train_PCA_predict_temp)))], family = binomial (link='logit'))
+glm_fit <- glm(Condition ~ ., data = train_data[,c(1:32, length(colnames(train_PCA_predict_temp)))], family = binomial (link='logit'))
 
+PCA_test_result <- predict(glm_fit, newdata = test_PCA_predict[,c(1:32)], type = "response")
 
-PCA_test_result <- predict(glm_fit, newdata = test_PCA_predict[,c(1:n)], type = "response")
+PCA_test_result
 PCA_test_results_class <- if_else(PCA_test_result > 0.5, "Infected", "Control") 
 conf_matrix <- caret::confusionMatrix(table(PCA_test_results_class, test_labels$Condition), mode = "everything", positive = "Infected")
-
+conf_matrix
 PCA_test_sensitivity_values <- conf_matrix$byClass['Sensitivity']
 PCA_test_specificity_values <- conf_matrix$byClass['Specificity']
 PCA_test_accuracy_values <- conf_matrix$overall['Accuracy']
@@ -487,71 +488,191 @@ PCA_test_recall_values <- conf_matrix$byClass['Recall']
 PCA_test_Pos_pred_values <- conf_matrix$byClass["Pos Pred Value"]
 PCA_test_Neg_pred_values <- conf_matrix$byClass["Neg Pred Value"]
 PCA_test_F1 <-  conf_matrix$byClass["F1"]
-temp <- data.frame(Comparison = "Testing_PCA", number_of_PCs = 44, Accuracy = PCA_test_accuracy_values, Sensitivity = PCA_test_sensitivity_values, Specificity = PCA_test_specificity_values, Precision = PCA_test_precision_values, Recall = PCA_test_recall_values, Pos_pred_value = PCA_test_Pos_pred_values, Neg_pred_value = PCA_test_Neg_pred_values, F1 = PCA_test_F1)
+temp <- data.frame(Comparison = "Testing_PCA", number_of_PCs = (length(coef(glm_fit)) -1) , Accuracy = PCA_test_accuracy_values, Sensitivity = PCA_test_sensitivity_values, Specificity = PCA_test_specificity_values, Precision = PCA_test_precision_values, Recall = PCA_test_recall_values, Pos_pred_value = PCA_test_Pos_pred_values, Neg_pred_value = PCA_test_Neg_pred_values, F1 = PCA_test_F1)
 PCA_results <- rbind(PCA_results, temp)
 
+
+
+
+summary(prcompResult) # 27 componetns captures about 80% of the variation
+
+
+
+
+######################################################################
+
+# ICA
+######################################################################
+
+
+
 View(PCA_results)
+a <- fastICA(train_counts_normalised, 27, alg.typ = "parallel", fun = "logcosh", alpha = 1,
+method = "C", row.norm = FALSE, maxit = 200,
+tol = 1e-7, verbose = TRUE)
 
-temp
-
-c(1:n, length(colnames(train_PCA_predict_temp)))
-
-avg_sensitivity <- mean(sensitivity_values)
-avg_specificity <- mean(PCA_train_specificity_values)
-avg_specificity
+plot(a$S[,1], a$S[,2])
 
 
-
-
-
+# Extract the independent components (scores)
+ica_components <- a$S
+rownames(ica_components) <- rownames(train_counts_normalised)
+colnames(ica_components) <- paste0("IC", 1:ncol(ica_components))
 
 
 
+# Add the ICA components to your training data
+ica_components <- data.frame(ica_components)
+ica_components <- cbind(ica_components, train_labels$Condition)
+colnames(ica_components)[length(colnames(ica_components))] <- "Condition"
+head(ica_components)
+ggplot(ica_components, aes(x = IC1, y = IC6, col = Condition)) + geom_point()
 
-PCA_cv_results$PCA_Fold_Class_5
-library(pROC)
-roc_obj <- roc(test_labels$Condition, PCA_cv_results_prob, levels=c("Control", "Infected"))
 
-PCA_cv_results
-summary(PCA_cv_results)
-PCA_cv_error
+head(train_counts_normalised)[,1:5]
 
-  list_of_fits[[fit.name]] <- cv.glmnet(train_PCA_predict, train_labels$Condition, type.measure="class", alpha = 1, family = "binomial", foldid = foldid_train)
+# Assuming 'response_variable' is the name of your binary outcome variable
+# Fit a logistic regression model
 
-  temp_model <- list_of_fits[[fit.name]]
-  predicted <- predict(list_of_fits[[fit.name]], s=list_of_fits[[fit.name]]$lambda.1se, newx=train_PCA_predict, type = "class")
+
+head(a$S)
+plot(a$S[,1], test_data_ica[,1])
+test_data_ica <- scale(test_counts_normalised, scale = FALSE) %*% a$K %*% a$W # preprocessed matrix * whitning matrix * unmixing matrix (W)
+head(test_data_ica)
+
+ICA_results <- data.frame()
+ICA_list_of_fits <- list()
+
+head(ica_components)
+test_data_ica <- data.frame(test_data_ica)
+rownames(test_data_ica) <- test_labels$Condition
+colnames(test_data_ica) <- paste0("IC", 1:ncol(test_data_ica))
+head(train_PCA_predict)
+head(test_data_ica)
+dim(test_data_ica)[2]
+ICA_cv_results <- list()
+
+for (n in 1:dim(test_data_ica)[2]) {
+  print(n)
   
-  conf_matrix <- caret::confusionMatrix(table(predicted, train_labels$Condition), mode = "everything", positive = "Infected")
-  Accuracy <- conf_matrix$overall["Accuracy"]
-  print(Accuracy)
-  Sensitivity <- conf_matrix$byClass["Sensitivity"]
-  Specificity <- conf_matrix$byClass["Specificity"]
-  Precision <- conf_matrix$byClass["Precision"]
-  Recall <- conf_matrix$byClass["Recall"]
-  Pos_pred_value <- conf_matrix$byClass["Pos Pred Value"]
-  Neg_pred_value <- conf_matrix$byClass["Neg Pred Value"]
-  F1 <- conf_matrix$byClass["F1"]
-  temp <- data.frame(Comparison = "Training Set", alpha=i/10, fit.name=fit.name, Accuracy = Accuracy, Sensitivity = Sensitivity, Specificity = Specificity, Precision = Precision, Recall = Recall, Pos_pred_value = Pos_pred_value, Neg_pred_value = Neg_pred_value, F1 = F1)
-  results_PCA <- rbind(results_PCA, temp)
-  if (Accuracy == 1) {
-
+  # Initialise the variables
+  ICA_train_accuracy_values <- c()
+  ICA_train_sensitivity_values <- c()
+  ICA_train_specificity_values <- c()
+  ICA_train_precision_values <- c()
+  ICA_train_recall_values <- c()
+  ICA_train_Pos_pred_value <- c()
+  ICA_train_Neg_pred_value <- c()
+  ICA_train_F1 <- c()
+  
+  
+  # Cross fold validation on training set
+  for (i in 1:K) {
+    # Train on all data except the ith fold, and test on the ith fold
+    # Select the max number of PCs
+    test_indices <- which(foldid_train == i)
+    train_data <- ica_components[-test_indices, ]
+    test_data <- ica_components[test_indices, ]
+        
+    # Fit the logistic model on the training data
+    glm_fit <- glm(Condition ~ ., data = ica_components[,c(1:n, length(colnames(ica_components)))], family = binomial (link='logit'))
+    # Perform cross-validation (calculate error on test data)
+    if (n == 1) {
+      print("n == 1")
+      test_data_predict <- as.data.frame(test_data[,1])
+      colnames(test_data_predict) <- "IC1"
+      ICA_cv_results_prob <- predict(glm_fit, newdata = test_data_predict, type = "response")
+      print("Prediction complete")
+    }
+    else { ICA_cv_results_prob <- predict(glm_fit, newdata = test_data[,c(1:n)], type = "response")
+    }
+    
+    ICA_cv_results[[paste0("ICA_", n,"Fold_", i)]] <- ICA_cv_results_prob
+    ICA_cv_results_class <- if_else(ICA_cv_results_prob > 0.5, "Infected", "Control") 
+    ICA_cv_results_class
+    conf_matrix <- caret::confusionMatrix(table(ICA_cv_results_class, test_data$Condition), mode = "everything", positive = "Infected")
+    conf_matrix
+        
+    ICA_cv_results[[paste0("ICA_",n,"Fold_Class_", i)]] <- ICA_cv_results_class
+    ICA_train_sensitivity_values[i] <- conf_matrix$byClass['Sensitivity']
+    ICA_train_specificity_values[i] <- conf_matrix$byClass['Specificity']
+    ICA_train_accuracy_values[i] <- conf_matrix$overall['Accuracy']
+    ICA_train_precision_values[i] <- conf_matrix$byClass['Precision']
+    ICA_train_recall_values[i] <- conf_matrix$byClass['Recall']
+    ICA_train_Pos_pred_value[i] <- conf_matrix$byClass["Pos Pred Value"]
+    ICA_train_Neg_pred_value[i] <- conf_matrix$byClass["Neg Pred Value"]
+    ICA_train_F1[i] <-  conf_matrix$byClass["F1"]
   }
 
+  # Now get metrics averaged accross all the five folds
+  accuracy <- mean(ICA_train_accuracy_values)
+  sensitivity <- mean(ICA_train_sensitivity_values)
+  specificity <- mean(ICA_train_specificity_values)
+  precision <- mean(ICA_train_precision_values)
+  recall <- mean(ICA_train_recall_values)
+  Pos_pred_value <- mean(ICA_train_Pos_pred_value)
+  Neg_pred_value <- mean(ICA_train_Neg_pred_value)
+  F1 <- mean(ICA_train_F1)
 
-View(cor(train_PCA_predict))
+  temp <- data.frame(Comparison = "Training_ICA", number_of_PCs = n, Accuracy = accuracy, Sensitivity = sensitivity, Specificity = specificity, Precision = precision, Recall = recall, Pos_pred_value = Pos_pred_value, Neg_pred_value = Neg_pred_value, F1 = F1)
+  ICA_results <- rbind(ICA_results, temp)
+}
 
-??cv.glm()
 
-list_of_fits
-prcompResult_test <- prcomp(test_counts_normalised, center = TRUE, scale. = FALSE)
-PCs_test<-prcompResult_test$x #The columns are PCs.
+head(test_data_ica)
 
-  temp_model <- list_of_fits[[fit.name]]
-  non_zero_count <- sum(coef(temp_model, s = "lambda.1se") != 0) - 1
-  ## Use each model to predict 'y' given the Testing dataset
-predicted <- predict(list_of_fits[["PC18"]], newx=test_counts_normalised, type = "prob")
-predicted_classes <- predict(list_of_fits[["PC18"]], newdata =test_counts_normalised)
-test_labels
-predicted
-predicted_classes
-print(fit.name)
+# Fit the model
+glm_fit <- glm(Condition ~ ., data = ica_components[,c(1:27, length(colnames(ica_components)))], family = binomial (link='logit'))
+
+ICA_test_result <- predict(glm_fit, newdata = test_data_ica[,1:27], type = "response")
+ICA_test_result
+ICA_test_results_class <- if_else(ICA_test_result > 0.5, "Infected", "Control") 
+conf_matrix <- caret::confusionMatrix(table(ICA_test_results_class, test_labels$Condition), mode = "everything", positive = "Infected")
+conf_matrix
+ICA_test_sensitivity_values <- conf_matrix$byClass['Sensitivity']
+ICA_test_specificity_values <- conf_matrix$byClass['Specificity']
+ICA_test_accuracy_values <- conf_matrix$overall['Accuracy']
+ICA_test_precision_values <- conf_matrix$byClass['Precision']
+ICA_test_recall_values <- conf_matrix$byClass['Recall']
+ICA_test_Pos_pred_values <- conf_matrix$byClass["Pos Pred Value"]
+ICA_test_Neg_pred_values <- conf_matrix$byClass["Neg Pred Value"]
+ICA_test_F1 <-  conf_matrix$byClass["F1"]
+temp <- data.frame(Comparison = "Testing_ICA", number_of_PCs = (length(coef(glm_fit)) -1) , Accuracy = ICA_test_accuracy_values, Sensitivity = ICA_test_sensitivity_values, Specificity = ICA_test_specificity_values, Precision = ICA_test_precision_values, Recall = ICA_test_recall_values, Pos_pred_value = ICA_test_Pos_pred_values, Neg_pred_value = ICA_test_Neg_pred_values, F1 = ICA_test_F1)
+ICA_results <- rbind(ICA_results, temp)
+
+
+
+
+
+##########################################################################
+
+
+
+#### NMF
+
+
+###########################################################################
+
+
+library(NMF)
+length(colnames(train_counts_normalised))
+
+test_nmf <- train_counts_normalised[,1:200]
+nmf_result <- nmf(t(test_nmf), rank = 3, method = "brunet", nrun = 10)
+nmf_result
+fit(nmf_result)
+V.hat <- fitted(nmf_result)
+dim(V.hat)
+summary(nmf_result)
+summary(nmf_result, class=train_labels$Condition)
+# get matrix W
+w <- basis(nmf_result)
+dim(w)
+
+# get matrix H
+h <- coef(nmf_result)
+dim(h)
+
+
+estim.r <- nmf(t(test_nmf), 2:6, nrun=10, seed=123456)
+consensusmap(estim.r, annCol=test_labels$Condition, labCol=NA, labRow=NA)
