@@ -399,9 +399,10 @@ PCA_cv_results <- list()
 head(test_data)
 dim(train_PCA_predict)
 PCA_results <- data.frame()
-train_PCA_predict$Condition
+PCA_list_of_fits <- list()
 for (n in 1:dim(train_PCA_predict)[1]) {
-
+  print(n)
+  
   # Initialise the variables
   PCA_train_accuracy_values <- c()
   PCA_train_sensitivity_values <- c()
@@ -424,30 +425,31 @@ for (n in 1:dim(train_PCA_predict)[1]) {
     # Perform cross-validation (calculate error on test data)
     if (n == 1) {
       print("n == 1")
-      test_data <- as.data.frame(test_data[,1])
-      colnames(test_data) <- "PC1"
-      PCA_cv_results_prob <- predict(glm_fit, newdata = test_data[,c(1:n)], type = "response")
+      test_data_predict <- as.data.frame(test_data[,1])
+      colnames(test_data_predict) <- "PC1"
+      PCA_cv_results_prob <- predict(glm_fit, newdata = test_data_predict, type = "response")
+      print("Prediction complete")
     }
     else { PCA_cv_results_prob <- predict(glm_fit, newdata = test_data[,c(1:n)], type = "response")
     }
     
-    PCA_cv_results[[paste0("PCA_Fold_", i)]] <- PCA_cv_results_prob
-
+    PCA_cv_results[[paste0("PCA_", n,"Fold_", i)]] <- PCA_cv_results_prob
     PCA_cv_results_class <- if_else(PCA_cv_results_prob > 0.5, "Infected", "Control") 
-    
     conf_matrix <- caret::confusionMatrix(table(PCA_cv_results_class, test_data$Condition), mode = "everything", positive = "Infected")
+    PCA_cv_results_class <- if_else(PCA_cv_results_prob > 0.5, "Infected", "Control") 
         
-    PCA_cv_results[[paste0("PCA_Fold_Class_", i)]] <- PCA_cv_results_class
+    PCA_cv_results[[paste0("PCA_",n,"Fold_Class_", i)]] <- PCA_cv_results_class
     PCA_train_sensitivity_values[i] <- conf_matrix$byClass['Sensitivity']
     PCA_train_specificity_values[i] <- conf_matrix$byClass['Specificity']
     PCA_train_accuracy_values[i] <- conf_matrix$overall['Accuracy']
     PCA_train_precision_values[i] <- conf_matrix$byClass['Precision']
     PCA_train_recall_values[i] <- conf_matrix$byClass['Recall']
-    PCA_train_Pos_pred_value_values[i] <- conf_matrix$byClass["Pos Pred Value"]
-    PCA_train_Neg_pred_value_values[i] <- conf_matrix$byClass["Neg Pred Value"]
+    PCA_train_Pos_pred_value[i] <- conf_matrix$byClass["Pos Pred Value"]
+    PCA_train_Neg_pred_value[i] <- conf_matrix$byClass["Neg Pred Value"]
     PCA_train_F1[i] <-  conf_matrix$byClass["F1"]
   }
 
+  # Now get metrics averaged accross all the five folds
   accuracy <- mean(PCA_train_accuracy_values)
   sensitivity <- mean(PCA_train_sensitivity_values)
   specificity <- mean(PCA_train_specificity_values)
@@ -462,14 +464,31 @@ for (n in 1:dim(train_PCA_predict)[1]) {
 }
 
 
-train_PCA_predict <- predict(prcompResult, train_counts_normalised)
 
 # Now predict on the actual dataset
 
+# Best model was with 44 PCs
+# Fit the model
+# Predict the score in the test
+test_PCA_predict <- predict(prcompResult, test_counts_normalised)
+test_PCA_predict <- data.frame(test_PCA_predict)
+glm_fit <- glm(Condition ~ ., data = train_data[,c(1:19, length(colnames(train_PCA_predict_temp)))], family = binomial (link='logit'))
 
 
+PCA_test_result <- predict(glm_fit, newdata = test_PCA_predict[,c(1:n)], type = "response")
+PCA_test_results_class <- if_else(PCA_test_result > 0.5, "Infected", "Control") 
+conf_matrix <- caret::confusionMatrix(table(PCA_test_results_class, test_labels$Condition), mode = "everything", positive = "Infected")
 
-
+PCA_test_sensitivity_values <- conf_matrix$byClass['Sensitivity']
+PCA_test_specificity_values <- conf_matrix$byClass['Specificity']
+PCA_test_accuracy_values <- conf_matrix$overall['Accuracy']
+PCA_test_precision_values <- conf_matrix$byClass['Precision']
+PCA_test_recall_values <- conf_matrix$byClass['Recall']
+PCA_test_Pos_pred_values <- conf_matrix$byClass["Pos Pred Value"]
+PCA_test_Neg_pred_values <- conf_matrix$byClass["Neg Pred Value"]
+PCA_test_F1 <-  conf_matrix$byClass["F1"]
+temp <- data.frame(Comparison = "Testing_PCA", number_of_PCs = 44, Accuracy = PCA_test_accuracy_values, Sensitivity = PCA_test_sensitivity_values, Specificity = PCA_test_specificity_values, Precision = PCA_test_precision_values, Recall = PCA_test_recall_values, Pos_pred_value = PCA_test_Pos_pred_values, Neg_pred_value = PCA_test_Neg_pred_values, F1 = PCA_test_F1)
+PCA_results <- rbind(PCA_results, temp)
 
 View(PCA_results)
 
