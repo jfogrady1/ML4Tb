@@ -118,7 +118,7 @@ data_caret_parition$Condition <- factor(data_caret_parition$Condition, levels = 
 
 
 # Create the parition between the training and testing
-trainIndex <- createDataPartition(data_caret_parition[["Condition"]], p = .75, 
+trainIndex <- createDataPartition(data_caret_parition[["Condition"]], p = .70, 
                                   list = FALSE, 
                                   times = 1)
 
@@ -199,6 +199,12 @@ meanSdPlot(assay(vstNormalizedExpressionDataForTest))
 # extract the counts form transformed object
 train_counts_normalised  <- assay(vstNormalizedExpressionDataForTrain)
 test_counts_normalised <- assay(vstNormalizedExpressionDataForTest)
+
+
+write.table(train_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/Train_vst_normalised_data.txt", quote = FALSE, sep = "\t")
+write.table(test_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/Test_vst_normalised_data.txt", quote = FALSE, sep = "\t")
+write.table(train_labels, "/home/workspace/jogrady/ML4TB/work/normalisation/Train_labels.txt", quote = FALSE, row.names = FALSE, sep = "\t")
+write.table(test_labels, "/home/workspace/jogrady/ML4TB/work/normalisation/Test_labels.txt", quote = FALSE, sep = "\t")
 
 # Apply the MAD function row-wise (across genes) - use 1 for this
 mad_values <- apply(as.matrix(train_counts), 1, mad)
@@ -391,6 +397,7 @@ cv_error <- numeric(5)
 
 
 
+
 head(train_data)
 
 
@@ -402,7 +409,7 @@ PCA_cv_results <- list()
 dim(train_PCA_predict)
 PCA_results <- data.frame()
 PCA_list_of_fits <- list()
-for (n in 1:dim(train_PCA_predict)[1]) {
+for (n in 1:dim(train_PCA_predict)[1]) { # nolint # nolint
   print(n)
   
   # Initialise the variables
@@ -641,7 +648,7 @@ temp <- data.frame(Comparison = "Testing_ICA", number_of_PCs = (length(coef(glm_
 ICA_results <- rbind(ICA_results, temp)
 
 
-
+View(ICA_results)
 
 
 ##########################################################################
@@ -653,13 +660,107 @@ ICA_results <- rbind(ICA_results, temp)
 
 ###########################################################################
 
-
+library(foreach)
+library(doParallel)
 library(NMF)
 length(colnames(train_counts_normalised))
+head(top_genes)
+top_genes_1.5 <- top_genes[1:1500,]
 
-test_nmf <- train_counts_normalised[,1:200]
-nmf_result <- nmf(t(test_nmf), rank = 3, method = "brunet", nrun = 10)
-nmf_result
+
+nmf_result <- nmf(t(train_counts_normalised), rank = 2:20, method = "brunet", nrun = 100, seed = 123456, .options = "v3p60")
+plot(nmf_result)
+
+#7 is the best
+
+nmf_7 <- nmf(t(train_counts_normalised), rank = 7, method = "brunet", nrun = 100, seed = 123456, .options = "v3p60")
+
+
+nmf_7@fit@W
+
+
+
+
+
+# try cross validation
+h_train <- coef(nmf_7)
+rownames(h_train) <- paste0("F", 1:7)
+dim(h_train)
+h_train
+cor(t(h_train))
+h_train <- data.frame(h_train)
+h_train
+h_train_glm <- cbind(data.frame(t(h_train)), train_labels$Condition)
+head(h_train_glm)
+colnames(h_train_glm)[8] <- "Condition"
+
+NMF_results <- data.frame()
+NMF_cv_results <- list()
+for (n in 1:dim(h_train)[1]) { # nolint # nolint
+  print(n)
+  
+  # Initialise the variables
+  NMF_train_accuracy_values <- c()
+  NMF_train_sensitivity_values <- c()
+  NMF_train_specificity_values <- c()
+  NMF_train_precision_values <- c()
+  NMF_train_recall_values <- c()
+  NMF_train_Pos_pred_value <- c()
+  NMF_train_Neg_pred_value <- c()
+  NMF_train_F1 <- c()
+  for (i in 1:K) {
+    # Train on all data except the ith fold, and test on the ith fold
+    train_NMF_predict_temp <- h_train_glm # Select the max number of PCs
+    test_indices <- which(foldid_train == i)
+    train_data <- train_NMF_predict_temp[-test_indices, ]
+    test_data <- train_NMF_predict_temp[test_indices, ]
+    test_data    
+    # Fit the logistic model on the training data
+    glm_fit <- glm(Condition ~ ., data = train_data[,c(1:n, length(colnames(train_NMF_predict_temp)))], family = binomial (link='logit'))
+    # Perform cross-validation (calculate error on test data)
+    if (n == 1) {
+      print("n == 1")
+      test_data_predict <- as.data.frame(test_data[,1])
+      colnames(test_data_predict) <- "NMF1"
+      NMF_cv_results_prob <- predict(glm_fit, newdata = test_data, type = "response")
+      print("Prediction complete")
+    }
+    else { NMF_cv_results_prob <- predict(glm_fit, newdata = test_data[,c(1:n)], type = "response")
+    }
+    
+    NMF_cv_results[[paste0("NMF_", n,"Fold_", i)]] <- NMF_cv_results_prob
+    NMF_cv_results_class <- if_else(NMF_cv_results_prob > 0.5, "Infected", "Control") 
+    conf_matrix <- caret::confusionMatrix(table(NMF_cv_results_class, test_data$Condition), mode = "everything", positive = "Infected")
+    NMF_cv_results_class <- if_else(NMF_cv_results_prob > 0.5, "Infected", "Control")        
+    NMF_cv_results[[paste0("NMF_",n,"Fold_Class_", i)]] <- NMF_cv_results_class
+    NMF_train_sensitivity_values[i] <- conf_matrix$byClass['Sensitivity']
+    NMF_train_specificity_values[i] <- conf_matrix$byClass['Specificity']
+    NMF_train_accuracy_values[i] <- conf_matrix$overall['Accuracy']
+    NMF_train_precision_values[i] <- conf_matrix$byClass['Precision']
+    NMF_train_recall_values[i] <- conf_matrix$byClass['Recall']
+    NMF_train_Pos_pred_value[i] <- conf_matrix$byClass["Pos Pred Value"]
+    NMF_train_Neg_pred_value[i] <- conf_matrix$byClass["Neg Pred Value"]
+    NMF_train_F1[i] <-  conf_matrix$byClass["F1"]
+  }
+
+  # Now get metrics averaged accross all the five folds
+  accuracy <- mean(NMF_train_accuracy_values)
+  sensitivity <- mean(NMF_train_sensitivity_values)
+  specificity <- mean(NMF_train_specificity_values)
+  precision <- mean(NMF_train_precision_values)
+  recall <- mean(NMF_train_recall_values)
+  Pos_pred_value <- mean(NMF_train_Pos_pred_value)
+  Neg_pred_value <- mean(NMF_train_Neg_pred_value)
+  F1 <- mean(NMF_train_F1)
+
+  temp <- data.frame(Comparison = "Training_NMF", number_of_PCs = n, Accuracy = accuracy, Sensitivity = sensitivity, Specificity = specificity, Precision = precision, Recall = recall, Pos_pred_value = Pos_pred_value, Neg_pred_value = Neg_pred_value, F1 = F1)
+  NMF_results <- rbind(NMF_results, temp)
+}
+
+
+
+
+
 fit(nmf_result)
 V.hat <- fitted(nmf_result)
 dim(V.hat)
@@ -673,6 +774,9 @@ dim(w)
 h <- coef(nmf_result)
 dim(h)
 
-
-estim.r <- nmf(t(test_nmf), 2:6, nrun=10, seed=123456)
-consensusmap(estim.r, annCol=test_labels$Condition, labCol=NA, labRow=NA)
+ # nolint
+write.table(PCA_results, file = "/home/workspace/jogrady/ML4TB/results/logistic_regression/PCA_feature_results.txt", sep = "\t", quote = F, row.names = F)
+write.table(ICA_results, file = "/home/workspace/jogrady/ML4TB/results/logistic_regression/ICA_feature_results.txt", sep = "\t", quote = F, row.names = F)
+write.table(NMF_results, file = "/home/workspace/jogrady/ML4TB/results/logistic_regression/NMF_feature_results.txt", sep = "\t", quote = F, row.names = F)
+write.table(results_logistic_genes_l.min, file = "/home/workspace/jogrady/ML4TB/results/logistic_regression/gene_features_lambdamin.txt", sep = "\t", quote = F, row.names = F)
+write.table(results_logistic_genes_l.se, file = "/home/workspace/jogrady/ML4TB/results/logistic_regression/gene_features_lambda_1se.txt", sep = "\t", quote = F, row.names = F)

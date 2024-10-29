@@ -4,3 +4,4 @@ data/*
 bin/software/*
 .snakemake/*
 bin/.*
+work/*
