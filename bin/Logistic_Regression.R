@@ -201,10 +201,62 @@ train_counts_normalised  <- assay(vstNormalizedExpressionDataForTrain)
 test_counts_normalised <- assay(vstNormalizedExpressionDataForTest)
 
 
+ensemble <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf")
+ensemble <- ensemble %>% filter(V3 == "gene")
+head(ensemble)
+ensemble <- ensemble %>% separate(., V9, into = c("gene_id", "gene_version", "gene_name"), sep = ";")
+ensemble$gene_id <- gsub("^gene_id ", "", ensemble$gene_id)
+ensemble$gene_id <- gsub('"', '', ensemble$gene_id)
+ensemble$gene_name <- gsub("gene_name ", "", ensemble$gene_name)
+ensemble$gene_name <- gsub("gene_source ", "", ensemble$gene_name)
+ensemble$gene_name <- gsub('"', '', ensemble$gene_name)
+
+ensemble$gene_name <- if_else(ensemble$gene_name == " ensembl", ensemble$gene_id, ensemble$gene_name)
+ensemble$gene_name <- if_else(ensemble$gene_name == " 5S_rRNA", ensemble$gene_id, ensemble$gene_name)
+colnames(ensemble)[1] <- "chr"
+ensemble <- ensemble %>% dplyr::select(gene_id, gene_name, chr, V4)
+colnames(ensemble)[4] <- "pos"
+ensemble <- ensemble %>% select(1:2)
+
+
+head(duplicated(ensemble$gene_name))
+ensemble$gene_name <- if_else(duplicated(ensemble$gene_name), ensemble$gene_id, ensemble$gene_name)
+head(ensemble,20)
+
+table(duplicated(ensemble$gene_name))
+
+tested_genes <- data.frame(rownames(train_counts_normalised))
+colnames(tested_genes) <- "gene_id"
+head(tested_genes$gene_id,20)
+head(ensemble$gene_name,20)
+
+all(tested_genes$gene_id == ensemble$gene_id)
+ensemble$gene_name <- gsub(' ', '', ensemble$gene_name)
+ensemble$gene_id <- gsub(' ', '', ensemble$gene_id)
+head(tested_genes$gene_id,20)
+head(ensemble$gene_id,20)
+
+tested_genes <- left_join(tested_genes, ensemble, by = c("gene_id" = "gene_id"))
+
+head(tested_genes,20)
+all(tested_genes$gene_id == rownames(train_counts_normalised))
+
+rownames(train_counts_normalised) <- tested_genes$gene_name
+
+
+rownames(test_counts_normalised) <- tested_genes$gene_name
+
+table(duplicated(rownames(test_counts_normalised)))
+
+
+
+
 write.table(train_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/Train_vst_normalised_data.txt", quote = FALSE, sep = "\t")
 write.table(test_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/Test_vst_normalised_data.txt", quote = FALSE, sep = "\t")
 write.table(train_labels, "/home/workspace/jogrady/ML4TB/work/normalisation/Train_labels.txt", quote = FALSE, row.names = FALSE, sep = "\t")
 write.table(test_labels, "/home/workspace/jogrady/ML4TB/work/normalisation/Test_labels.txt", quote = FALSE, sep = "\t")
+
+
 
 # Apply the MAD function row-wise (across genes) - use 1 for this
 mad_values <- apply(as.matrix(train_counts), 1, mad)
