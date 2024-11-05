@@ -50,7 +50,16 @@ rule all:
         ),
         expand("/home/workspace/jogrady/ML4TB/data/kirsten/combined/{sample_id}_R1.fastq.gz", sample_id = sample_ids, lane = lanes),
         expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids, N=[1, 2]),
-        #"/home/workspace/jogrady/ML4TB/work/RNA_seq/multiqc_report.html"
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/multiqc_report.html',
+        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{sample_id}_R{N}_trimmed.fastq.gz', sample_id = sample_ids, N = [1,2]),
+        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id=sample_ids, N=[1, 2]),
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/multiqc_report.html',
+        directory("/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/"),
+        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids),
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts.txt',
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt'
+        
+        
 
 # Rule to download paired-end files from ENA
 # Note do not specify an input file as snakemake will give out cause it cant find a file that is not there
@@ -105,10 +114,123 @@ rule fastqc:
 
 rule mutltiqc:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/data/kirsten/combined/{sample_id}_R{N}.fastq.gz', sample_id = sample_ids, N = (1,2))
+        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id = sample_ids, N = (1,2))
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/multiqc_report.html'
+        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/
+        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/
         """
+
+rule trimming:
+    input:
+        untrimmed_reads = lambda wildcards: [f"/home/workspace/jogrady/ML4TB/data/kirsten/combined/{wildcards.sample_id}_R1.fastq.gz",
+                                  f"/home/workspace/jogrady/ML4TB/data/kirsten/combined/{wildcards.sample_id}_R2.fastq.gz"],
+        adapters = "/home/workspace/jogrady/ML4TB/data/adapters/Illumina_adpters.fa"
+    output:
+        trimmed_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{{sample_id}}_R{N}_trimmed.fastq.gz', N = (1,2)),
+        unpaired_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{{sample_id}}_R{N}_unpaired.fastq.gz', N = (1,2))
+    threads:
+        50
+    singularity:
+        "docker://staphb/trimmomatic:latest"
+    shell:
+        """
+        /Trimmomatic-0.39/trimmomatic PE -threads {threads} -phred33 {input.untrimmed_reads[0]} {input.untrimmed_reads[1]} {output.trimmed_reads[0]} {output.unpaired_reads[0]} {output.trimmed_reads[1]} {output.unpaired_reads[1]} ILLUMINACLIP:{input.adapters}:2:30:10 TRAILING:30 MINLEN:36 
+        """
+
+
+rule fastqc_trimmed:
+    input:
+        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+    output:
+        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.zip', N = (1,2)),
+        html = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.html', N = (1,2))
+    threads:
+        40
+    resources:
+        mem_mb = 4000
+    shell:
+        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/'
+
+
+rule mutltiqc_trim:
+    input:
+        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id = sample_ids, N = (1,2))
+    output:
+        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/multiqc_report.html'
+    shell:
+        """
+        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/
+        """
+
+
+# Build this for 100 bps
+rule build_reference:
+    input:
+        fa="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.dna.toplevel.fa",
+        gtf="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf" 
+    output:
+        STAR_dir = directory("/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/")  # Please provide the output files names from this step.
+    threads: 20
+    shell:
+        '''
+        mkdir /home/workspace/jogrady/ML4TB/data/kirsten/star-genome/ # STAR cannot make directory
+        STAR-2.7.1a --runThreadN {threads} \
+        --runMode genomeGenerate \
+        --genomeDir /home/workspace/jogrady/ML4TB/data/kirsten/star-genome/ \
+        --genomeFastaFiles {input.fa} \
+        --sjdbGTFfile {input.gtf} \
+        --sjdbOverhang 99
+        ''' 
+
+
+
+rule Alignment:
+    input:
+        genome = "/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/",
+        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+    params:
+        prefix = lambda wildcards: f'{wildcards.sample_id}'
+    output:
+        aligned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
+        finallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Log.final.out',
+        interlog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Log.progress.out',
+        initiallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Log.out'
+    threads: 40
+    shell:
+        '''
+        STAR-2.7.1a  --genomeLoad LoadAndKeep --genomeDir {input.genome} --runThreadN {threads} \
+        --readFilesIn {input.reads[0]} {input.reads[1]} --readFilesCommand gunzip -c \
+        --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
+        '''
+
+
+rule featureCounts:
+    input:
+        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids),
+        annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
+    output:
+        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts.txt'
+    threads: 40
+    shell:
+        '''
+        # use new version of feature counts
+        featureCounts -a {input.annotation} -o {output.count_matrix} {input.bam} -B -p -C -R BAM -T {threads} -s 0 -t gene -g gene_id
+        '''
+
+rule cleanup_FC:
+    input:
+        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts.txt'
+    output:
+        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts_temp.txt',
+        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt',
+    shell:
+        ''' 
+        tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
+        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
+        cat {output.count_matrix_temp} > {output.cleaned} 
+        '''
