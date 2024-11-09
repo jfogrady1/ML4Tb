@@ -250,12 +250,42 @@ table(duplicated(rownames(test_counts_normalised)))
 
 
 
+# Read in kirsten's data
+
+Kirsten <- fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt", sep = "\t") %>% select(-1)
+Kirsten <- as.matrix(Kirsten)
+rownames(Kirsten) <- tested_genes$gene_name
+head(Kirsten,20)
+
+colnames(Kirsten)
+kirsten_labels <- fread("/home/workspace/jogrady/ML4TB/data/kirsten/kirsten_covariate.txt") %>% as.data.frame()
+samples_kirsten <- kirsten_labels
+rownames(kirsten_labels) <- kirsten_labels$Sample
+kirsten_labels
+kirsten_labels <- kirsten_labels %>% select(Condition)
+
+test_labels
+kirsten_labels
+ddsKirsten <- DESeqDataSetFromMatrix(countData = Kirsten, colData = kirsten_labels, design = ~ 1) # keep to 1 so that it doesnt know the labels
+ddsKirsten <- DESeq(ddsKirsten)
+
+
+dispersionFunction(ddsKirsten) <- dispersionFunction(ddsTrain) # This is related to point above from Mike Love
+
+
+vstNormalizedExpressionDataForKirsten <- varianceStabilizingTransformation(ddsKirsten, blind = FALSE) # Now perform the normalisation
+
+kirsten_counts_normalised <- assay(vstNormalizedExpressionDataForKirsten)
+
+meanSdPlot(assay(vstNormalizedExpressionDataForKirsten))
+
 
 write.table(train_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/Train_vst_normalised_data.txt", quote = FALSE, sep = "\t")
 write.table(test_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/Test_vst_normalised_data.txt", quote = FALSE, sep = "\t")
+write.table(kirsten_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/Kirsten_vst_normalised_data.txt", quote = FALSE, sep = "\t")
 write.table(train_labels, "/home/workspace/jogrady/ML4TB/work/normalisation/Train_labels.txt", quote = FALSE, row.names = FALSE, sep = "\t")
 write.table(test_labels, "/home/workspace/jogrady/ML4TB/work/normalisation/Test_labels.txt", quote = FALSE, sep = "\t")
-
+write.table(kirsten_labels, "/home/workspace/jogrady/ML4TB/work/normalisation/Kirsten_labels.txt", quote = FALSE, sep = "\t" )
 
 
 # Apply the MAD function row-wise (across genes) - use 1 for this
