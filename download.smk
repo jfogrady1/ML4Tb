@@ -83,7 +83,8 @@ rule all:
         expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids),
         expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids_wiarda),
         '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts.txt',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt'
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt',
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt'
         
         
 
@@ -367,3 +368,32 @@ rule Alignment_wiarda:
         --readFilesIn {input.reads[0]} {input.reads[1]} --readFilesCommand gunzip -c \
         --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
         '''
+
+rule featureCounts_wiarda:
+    input:
+        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_wiarda),
+        annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
+    output:
+        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/gene_counts.txt'
+    threads: 40
+    shell:
+        '''
+        # use new version of feature counts
+        featureCounts -a {input.annotation} -o {output.count_matrix} {input.bam} -B -p -C -R BAM -T {threads} -s 0 -t gene -g gene_id
+        '''
+
+rule cleanup_FC_wiarda:
+    input:
+        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/gene_counts.txt'
+    output:
+        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/gene_counts_temp.txt',
+        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt',
+    shell:
+        ''' 
+        tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
+        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
+        cat {output.count_matrix_temp} > {output.cleaned} 
+        '''
+
+
