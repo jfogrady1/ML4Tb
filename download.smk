@@ -8,14 +8,18 @@ from pathlib import Path
 
 # Load sample metadata
 samples = pd.read_csv("./data/kirsten/kirsten_samples.csv", sep="\t")
-samples_wiarda = pd.read_csv("./data/wiarda/wiarda_samples.csv", sep = "\t")
+samples_wiarda = pd.read_csv("./data/wiarda/wiarda_samples.csv", sep="\t")
+samples_abdelaal = pd.read_csv("./data/abdelaal/abdelaal_samples.csv", sep="\t")
 
 # Define a dictionary for mapping run IDs to sample codes
 sample_mapping = dict(zip(samples["ena_run"], samples["sample_code"]))
 sample_mapping_wiarda = dict(zip(samples_wiarda["Sample_SRR"], samples_wiarda["Animal_Code"]))
+sample_mapping_abdelaal = dict(zip(samples_abdelaal["Sample_SRR"], samples_abdelaal["Run_Code"]))
+
 # Set the output directory path
 output_dir_kirsten = "/home/workspace/jogrady/ML4TB/data/kirsten/individual/"
 output_dir_wiarda = "/home/workspace/jogrady/ML4TB/data/wiarda/"
+output_dir_abdelaal = "/home/workspace/jogrady/ML4TB/data/abdelaal/individual/"
 
 
 sample_ids = [
@@ -48,11 +52,50 @@ sample_ids_wiarda = [
 lanes = ["001","002","003","004","005"]
 
 
+
+sample_ids_abdelaal = [
+    'Infected_1_20', 'Infected_1_8',
+    'Infected_2_20', 'Infected_2_8',
+    'Infected_3_20', 'Infected_3_8',
+    'Infected_4_20', 'Infected_4_8',
+    'Infected_5_20', 'Infected_5_8',
+    'Infected_6_20', 'Infected_6_8',
+    'Uninfected_1_20', 'Uninfected_1_8',
+    'Uninfected_2_20', 'Uninfected_2_8',
+    'Uninfected_3_20', 'Uninfected_3_8',
+    'Uninfected_4_20', 'Uninfected_4_8',
+    'Uninfected_5_20', 'Uninfected_5_8',
+    'Uninfected_6_20', 'Uninfected_6_8'
+]
+
+
+abdelaal_run_codes = [
+    "Infected_1_20_1", "Infected_1_20_2", "Infected_1_8_1", "Infected_1_8_2",
+    "Infected_2_20_1", "Infected_2_20_2", "Infected_2_8_1", "Infected_2_8_2",
+    "Infected_3_20_1", "Infected_3_20_2", "Infected_3_8_1", "Infected_3_8_2",
+    "Infected_4_20_1", "Infected_4_20_2", "Infected_4_8_1", "Infected_4_8_2",
+    "Infected_5_20_1", "Infected_5_20_2", "Infected_5_8_1", "Infected_5_8_2",
+    "Infected_6_20_1", "Infected_6_20_2", "Infected_6_8_1", "Infected_6_8_2",
+    "Uninfected_1_20_1", "Uninfected_1_20_2", "Uninfected_1_8_1", "Uninfected_1_8_2",
+    "Uninfected_2_20_1", "Uninfected_2_20_2", "Uninfected_2_8_1", "Uninfected_2_8_2",
+    "Uninfected_3_20_1", "Uninfected_3_20_2", "Uninfected_3_8_1", "Uninfected_3_8_2",
+    "Uninfected_4_20_1", "Uninfected_4_20_2", "Uninfected_4_8_1", "Uninfected_4_8_2",
+    "Uninfected_5_20_1", "Uninfected_5_20_2", "Uninfected_5_8_1", "Uninfected_5_8_2",
+    "Uninfected_6_20_1", "Uninfected_6_20_2", "Uninfected_6_8_1", "Uninfected_6_8_2"
+]
+
+
+
 # functions
 def get_fq1(wildcards):
     return sorted(glob.glob("/home/workspace/jogrady/ML4TB/data/kirsten/individual/" + wildcards.sample_id + "_*_R1.fastq.gz"))
 def get_fq2(wildcards):
     return sorted(glob.glob("/home/workspace/jogrady/ML4TB/data/kirsten/individual/" + wildcards.sample_id + "_*_R2.fastq.gz"))
+
+# functions
+#def get_fq1_abdelaal(wildcards):
+    #return sorted(glob.glob("/home/workspace/jogrady/ML4TB/data/abdelaal/individual/" + wildcards.sample_code_abdelaal + "_[1-2].fastq.gz"))
+
 
 
 # Rule to specify the final target files for all samples
@@ -70,6 +113,7 @@ rule all:
         ),
         '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/multiqc_report.html',
         expand("/home/workspace/jogrady/ML4TB/data/kirsten/combined/{sample_id}_R1.fastq.gz", sample_id = sample_ids, lane = lanes),
+        expand("/home/workspace/jogrady/ML4TB/data/abdelaal/individual/{sample_code_abdelaal}.fastq.gz", sample_code_abdelaal = abdelaal_run_codes), # not paired end
         expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids, N=[1, 2]),
         expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids_wiarda, N=[1, 2]),
         '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/multiqc_report.html',
@@ -84,7 +128,12 @@ rule all:
         expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids_wiarda),
         '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts.txt',
         '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt'
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt',
+        expand("/home/workspace/jogrady/ML4TB/data/abdelaal/combined/{sample_id}.fastq.gz", sample_id = sample_ids_abdelaal),
+        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/{sample_id}_trimmed.fastq.gz', sample_id = sample_ids_abdelaal),
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/fastqc/multiqc_report.html',
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/fastqc/multiqc_report.html',
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Quantification/abdelaal_count_matrix_clean.txt',
         
         
 
@@ -396,4 +445,141 @@ rule cleanup_FC_wiarda:
         cat {output.count_matrix_temp} > {output.cleaned} 
         '''
 
+rule download_single_end_abdelaal:
+    output:
+        r1=f"{output_dir_abdelaal}{{sample_code_abdelaal}}.fastq.gz"
+    params:
+        ena_run= lambda wildcards: samples_abdelaal[samples_abdelaal["Run_Code"] == wildcards.sample_code_abdelaal]["Sample_SRR"].values[0]
+    conda:
+        "/home/workspace/jogrady/ML4TB/envs/fastqdl.yml"
+    shell:
+        """
+        # Download paired-end reads using fastq-dl
+        fastq-dl -a {params.ena_run} --cpus 20 -o {output_dir_abdelaal}
 
+        # Rename files to match the sample code
+        mv /home/workspace/jogrady/ML4TB/data/abdelaal/individual/{params.ena_run}.fastq.gz {output.r1}
+        """
+
+
+
+rule combineFiles_abdelaal:
+    input:
+         reads_1 = ["/home/workspace/jogrady/ML4TB/data/abdelaal/individual/{sample_id}_1.fastq.gz",
+         "/home/workspace/jogrady/ML4TB/data/abdelaal/individual/{sample_id}_2.fastq.gz"]
+    output:
+        r1="/home/workspace/jogrady/ML4TB/data/abdelaal/combined/{sample_id}.fastq.gz",
+    shell:
+        """
+        cat {input.reads_1} > {output.r1}
+        """
+
+rule fastqc_abdelaal:
+    input:
+        reads = lambda wildcards: f"/home/workspace/jogrady/ML4TB/data/abdelaal/combined/{wildcards.sample_id}.fastq.gz"
+    output:
+        reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/fastqc/{sample_id}_fastqc.zip',
+        html = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/fastqc/{sample_id}_fastqc.html'
+    threads:
+        40
+    resources:
+        mem_mb = 4000
+    shell:
+        'fastqc {input.reads} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/fastqc/'
+
+
+rule mutltiqc_abdelaal:
+    input:
+        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/fastqc/{sample_id}_fastqc.zip', sample_id = sample_ids_abdelaal)
+    output:
+        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/fastqc/multiqc_report.html'
+    shell:
+        """
+        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/fastqc/
+        """
+
+rule trimming_abdelaal:
+    input:
+        untrimmed_reads = "/home/workspace/jogrady/ML4TB/data/abdelaal/combined/{sample_id}.fastq.gz",
+        adapters = "/home/workspace/jogrady/ML4TB/data/adapters/Illumina_adpters.fa"
+    output:
+        trimmed_reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/{sample_id}_trimmed.fastq.gz'
+    threads:
+        50
+    singularity:
+        "docker://staphb/trimmomatic:latest"
+    shell:
+        """
+        /Trimmomatic-0.39/trimmomatic SE -threads {threads} -phred33 {input.untrimmed_reads} {output.trimmed_reads} ILLUMINACLIP:{input.adapters}:2:30:10 TRAILING:30 MINLEN:36 
+        """
+
+rule fastqc_abdelaal_trimmed:
+    input:
+        reads = lambda wildcards: f"/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"
+    output:
+        reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip',
+        html = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/fastqc/{sample_id}_trimmed_fastqc.html'
+    threads:
+        40
+    resources:
+        mem_mb = 16000
+    shell:
+        'fastqc {input.reads} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/fastqc/'
+
+rule mutltiqc_abdelaal_trimmed:
+    input:
+        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip', sample_id = sample_ids_abdelaal)
+    output:
+        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/fastqc/multiqc_report.html'
+    shell:
+        """
+        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/fastqc/
+        """
+    
+
+rule Alignment_abdelaal:
+    input:
+        genome = "/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/", # use the same
+        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"]
+    params:
+        prefix = lambda wildcards: f'{wildcards.sample_id}'
+    output:
+        aligned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
+        finallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Alignment/{sample_id}_Log.final.out',
+        interlog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Alignment/{sample_id}_Log.progress.out',
+        initiallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Alignment/{sample_id}_Log.out'
+    threads: 40
+    shell:
+        '''
+        STAR-2.7.1a  --genomeLoad LoadAndKeep --genomeDir {input.genome} --runThreadN {threads} \
+        --readFilesIn {input.reads} --readFilesCommand gunzip -c \
+        --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
+        '''
+
+rule featureCounts_abdelaal:
+    input:
+        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_abdelaal),
+        annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
+    output:
+        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Quantification/gene_counts.txt'
+    threads: 40
+    shell:
+        '''
+        # use new version of feature counts
+        featureCounts -a {input.annotation} -o {output.count_matrix} {input.bam} -T {threads} -s 0 -t gene -g gene_id
+        '''
+
+
+rule cleanup_FC_abdelaal:
+    input:
+        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Quantification/gene_counts.txt'
+    output:
+        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Quantification/gene_counts_temp.txt',
+        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Quantification/abdelaal_count_matrix_clean.txt',
+    shell:
+        ''' 
+        tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
+        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
+        cat {output.count_matrix_temp} > {output.cleaned} 
+        '''
