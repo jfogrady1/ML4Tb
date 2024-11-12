@@ -10,6 +10,7 @@ from pathlib import Path
 samples = pd.read_csv("./data/kirsten/kirsten_samples.csv", sep="\t")
 samples_wiarda = pd.read_csv("./data/wiarda/wiarda_samples.csv", sep="\t")
 samples_abdelaal = pd.read_csv("./data/abdelaal/abdelaal_samples.csv", sep="\t")
+samples_kirsten_pbl = pd.read_csv("./data/kirsten_pbl/kirsten_pbl_samples.csv", sep = "\t")
 
 # Define a dictionary for mapping run IDs to sample codes
 sample_mapping = dict(zip(samples["ena_run"], samples["sample_code"]))
@@ -20,6 +21,9 @@ sample_mapping_abdelaal = dict(zip(samples_abdelaal["Sample_SRR"], samples_abdel
 output_dir_kirsten = "/home/workspace/jogrady/ML4TB/data/kirsten/individual/"
 output_dir_wiarda = "/home/workspace/jogrady/ML4TB/data/wiarda/"
 output_dir_abdelaal = "/home/workspace/jogrady/ML4TB/data/abdelaal/individual/"
+output_dir_kirsten_pbl = "/home/workspace/jogrady/ML4TB/data/kirsten_pbl/"
+
+
 
 
 sample_ids = [
@@ -86,16 +90,15 @@ abdelaal_run_codes = [
 
 
 
+sample_ids_kirsten_pbl = ['A016_CON','A017_CON','A018_CON','A020_CON','A022_CON','A023_CON','A024_CON','A029_CON',
+                          'A032_TB','A033_TB','A034_TB','A035_TB','A036_TB','A037_TB','A038_TB','A039_TB']
+
+
 # functions
 def get_fq1(wildcards):
     return sorted(glob.glob("/home/workspace/jogrady/ML4TB/data/kirsten/individual/" + wildcards.sample_id + "_*_R1.fastq.gz"))
 def get_fq2(wildcards):
     return sorted(glob.glob("/home/workspace/jogrady/ML4TB/data/kirsten/individual/" + wildcards.sample_id + "_*_R2.fastq.gz"))
-
-# functions
-#def get_fq1_abdelaal(wildcards):
-    #return sorted(glob.glob("/home/workspace/jogrady/ML4TB/data/abdelaal/individual/" + wildcards.sample_code_abdelaal + "_[1-2].fastq.gz"))
-
 
 
 # Rule to specify the final target files for all samples
@@ -134,6 +137,14 @@ rule all:
         '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/fastqc/multiqc_report.html',
         '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/trimmed/fastqc/multiqc_report.html',
         '/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Quantification/abdelaal_count_matrix_clean.txt',
+
+        expand("/home/workspace/jogrady/ML4TB/data/kirsten_pbl/{sample_code_kirsten_pbl}.fastq.gz", sample_code_kirsten_pbl = sample_ids_kirsten_pbl), # not paired end
+        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.zip', sample_id=sample_ids_kirsten_pbl),
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/multiqc_report.html',
+        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/{sample_id}_trimmed.fastq.gz', sample_id = sample_ids_kirsten_pbl),
+        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip', sample_id = sample_ids_kirsten_pbl),
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/multiqc_report.html',
+        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/kirsten_pbl_count_matrix_clean.txt'
         
         
 
@@ -445,6 +456,12 @@ rule cleanup_FC_wiarda:
         cat {output.count_matrix_temp} > {output.cleaned} 
         '''
 
+########################################
+### Abdelaal samples
+###
+########################################
+
+
 rule download_single_end_abdelaal:
     output:
         r1=f"{output_dir_abdelaal}{{sample_code_abdelaal}}.fastq.gz"
@@ -583,3 +600,137 @@ rule cleanup_FC_abdelaal:
         sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
         cat {output.count_matrix_temp} > {output.cleaned} 
         '''
+
+
+########################################
+### Kirsten_PBL samples
+###
+########################################
+
+rule download_single_end_kirsten_pbl:
+    output:
+        r1=f"{output_dir_kirsten_pbl}{{sample_code_kirsten_pbl}}.fastq.gz"
+    params:
+        ena_run= lambda wildcards: samples_kirsten_pbl[samples_kirsten_pbl["Run_Code"] == wildcards.sample_code_kirsten_pbl]["Sample_SRR"].values[0]
+    conda:
+        "/home/workspace/jogrady/ML4TB/envs/fastqdl.yml"
+    shell:
+        """
+        # Download paired-end reads using fastq-dl
+        fastq-dl -a {params.ena_run} --cpus 20 -o {output_dir_kirsten_pbl}
+
+        # Rename files to match the sample code
+        mv /home/workspace/jogrady/ML4TB/data/kirsten_pbl/{params.ena_run}.fastq.gz {output.r1}
+        """
+
+rule fastqc_kirsten_pbl:
+    input:
+        reads = lambda wildcards: f"/home/workspace/jogrady/ML4TB/data/kirsten_pbl/{wildcards.sample_id}.fastq.gz"
+    output:
+        reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.zip',
+        html = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.html'
+    threads:
+        40
+    resources:
+        mem_mb = 4000
+    shell:
+        'fastqc {input.reads} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/'
+
+
+
+rule mutltiqc_kirsten_pbl:
+    input:
+        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.zip', sample_id = sample_ids_kirsten_pbl)
+    output:
+        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/multiqc_report.html'
+    shell:
+        """
+        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/
+        """
+
+rule trimming_kirsten_pbl:
+    input:
+        untrimmed_reads = "/home/workspace/jogrady/ML4TB/data/kirsten_pbl/{sample_id}.fastq.gz",
+        adapters = "/home/workspace/jogrady/ML4TB/data/adapters/Illumina_adpters.fa"
+    output:
+        trimmed_reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/{sample_id}_trimmed.fastq.gz'
+    threads:
+        50
+    singularity:
+        "docker://staphb/trimmomatic:latest"
+    shell:
+        """
+        /Trimmomatic-0.39/trimmomatic SE -threads {threads} -phred33 {input.untrimmed_reads} {output.trimmed_reads} ILLUMINACLIP:{input.adapters}:2:30:10 TRAILING:30 MINLEN:36 
+        """
+
+rule fastqc_kirsten_pbl_trimmed:
+    input:
+        reads = lambda wildcards: f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"
+    output:
+        reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip',
+        html = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.html'
+    threads:
+        40
+    resources:
+        mem_mb = 16000
+    shell:
+        'fastqc {input.reads} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/'
+
+
+rule mutltiqc_kirsten_pbl_trimmed:
+    input:
+        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip', sample_id = sample_ids_kirsten_pbl)
+    output:
+        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/multiqc_report.html'
+    shell:
+        """
+        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/
+        """
+
+rule Alignment_kirsten_pbl:
+    input:
+        genome = "/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/", # use the same
+        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"]
+    params:
+        prefix = lambda wildcards: f'{wildcards.sample_id}'
+    output:
+        aligned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
+        finallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Log.final.out',
+        interlog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Log.progress.out',
+        initiallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Log.out'
+    threads: 40
+    shell:
+        '''
+        STAR-2.7.1a  --genomeLoad LoadAndKeep --genomeDir {input.genome} --runThreadN {threads} \
+        --readFilesIn {input.reads} --readFilesCommand gunzip -c \
+        --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
+        '''
+
+rule featureCounts_kirsten_pbl:
+    input:
+        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_kirsten_pbl),
+        annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
+    output:
+        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/gene_counts.txt'
+    threads: 40
+    shell:
+        '''
+        # use new version of feature counts
+        featureCounts -a {input.annotation} -o {output.count_matrix} {input.bam} -T {threads} -s 0 -t gene -g gene_id
+        '''
+
+
+rule cleanup_FC_kirsten_pbl:
+    input:
+        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/gene_counts.txt'
+    output:
+        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/gene_counts_temp.txt',
+        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/kirsten_pbl_count_matrix_clean.txt',
+    shell:
+        ''' 
+        tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
+        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
+        cat {output.count_matrix_temp} > {output.cleaned} 
+        '''
+
