@@ -344,31 +344,69 @@ kirsten_pbl_all_samples_ggplot
 ggsave2("/home/workspace/jogrady/ML4TB/work/normalisation/Figures/kirsten_pbl_PCA.pdf", width = 12, height = 12, dpi = 600)
 
 
+##################################
+##################################
+
+
+# Write VST files
+wiarda_counts_normalised  <- assay(dds_wiarda_full_vst)
+kirsten_counts_normalised  <- assay(dds_kirsten_full_vst)
+kirsten_pbl_counts_normalised  <- assay(dds_kirsten_pbl_full_vst)
+abdelaal_counts_normalised  <- assay(dds_abdelaal_full_vst)
 
 
 
 
+ensemble <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf")
+ensemble <- ensemble %>% filter(V3 == "gene")
+head(ensemble)
+ensemble <- ensemble %>% separate(., V9, into = c("gene_id", "gene_version", "gene_name"), sep = ";")
+ensemble$gene_id <- gsub("^gene_id ", "", ensemble$gene_id)
+ensemble$gene_id <- gsub('"', '', ensemble$gene_id)
+ensemble$gene_name <- gsub("gene_name ", "", ensemble$gene_name)
+ensemble$gene_name <- gsub("gene_source ", "", ensemble$gene_name)
+ensemble$gene_name <- gsub('"', '', ensemble$gene_name)
+
+ensemble$gene_name <- if_else(ensemble$gene_name == " ensembl", ensemble$gene_id, ensemble$gene_name)
+ensemble$gene_name <- if_else(ensemble$gene_name == " 5S_rRNA", ensemble$gene_id, ensemble$gene_name)
+colnames(ensemble)[1] <- "chr"
+ensemble <- ensemble %>% dplyr::select(gene_id, gene_name, chr, V4)
+colnames(ensemble)[4] <- "pos"
+ensemble <- ensemble %>% select(1:2)
+
+
+head(duplicated(ensemble$gene_name))
+ensemble$gene_name <- if_else(duplicated(ensemble$gene_name), ensemble$gene_id, ensemble$gene_name)
+head(ensemble,20)
+
+table(duplicated(ensemble$gene_name))
+
+rownames(wiarda_counts_normalised)
+tested_genes <- data.frame(rownames(wiarda_data_raw))
+colnames(tested_genes) <- "gene_id"
+head(tested_genes$gene_id,20)
+head(ensemble$gene_name,20)
+
+all(tested_genes$gene_id == ensemble$gene_id)
+ensemble$gene_name <- gsub(' ', '', ensemble$gene_name)
+ensemble$gene_id <- gsub(' ', '', ensemble$gene_id)
+head(tested_genes$gene_id,20)
+head(ensemble$gene_id,20)
+
+tested_genes <- left_join(tested_genes, ensemble, by = c("gene_id" = "gene_id"))
+
+head(wiarda_counts_normalised)
+tested_genes$gene_id
+rownames(wiarda_counts_normalised) <- tested_genes$gene_name
+rownames(kirsten_counts_normalised) <- tested_genes$gene_name
+rownames(kirsten_pbl_counts_normalised) <- tested_genes$gene_name
+rownames(abdelaal_counts_normalised) <- tested_genes$gene_name
+
+
+write.table(wiarda_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/wiarda_vst_normalised_data.txt", quote = FALSE, sep = "\t")
+write.table(kirsten_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/kirsten_vst_normalised_data.txt", quote = FALSE, sep = "\t")
+write.table(kirsten_pbl_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/kirsten_pbl_vst_normalised_data.txt", quote = FALSE, sep = "\t")
+write.table(abdelaal_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/abdelaal_vst_normalised_data.txt", quote = FALSE, sep = "\t")
 
 
 
-
-
-
-
-ggsave("Test.pdf", width = 12, height = 12, dpi = 600)
-
-
-dds_wiarda_full_vst <- vst(dds_wiarda_full)
-
-plotPCA(dds_wiarda_full_vst, intgroup=c("Status","Week")) + theme_bw()
-
-dds_wiarda_full_vst_W0_W4 <-
-
-dds_wiarda_full %>% filter(Status == "Control")
-
-dds_wiarda_W0_W4 <- dds_wiarda_full 
-
-wiarda_covariate
-
-rownames(assay(dds_wiarda_full))
-head(wiarda_covariate)
