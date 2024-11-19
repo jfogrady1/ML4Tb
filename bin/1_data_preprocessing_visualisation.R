@@ -1,8 +1,11 @@
+# This script reads in data, generates dds objects, performs vst transformation, visualiation using PCA, and writes, vst normalised counts and dds objects.
 library(tidyverse)
 library(DESeq2)
 library(ggplot2)
 library(data.table)
 library(ggthemes)
+
+ 
 
 theme_Publication <- function(base_size=12, base_family = "sans") {
       library(grid)
@@ -66,9 +69,13 @@ abdelaal_covariate
 
 
 ### Here we will focus on Wiarda
+### INfer sex
+
 row.names(wiarda_covariate) <- unique(wiarda_covariate$Animal_Code)
 row.names(wiarda_data_raw) <- wiarda_data_raw$Geneid
 wiarda_data_raw <- wiarda_data_raw %>% select(-1)
+
+
 
 dds_wiarda_full <- DESeqDataSetFromMatrix(countData = wiarda_data_raw, 
                               colData = wiarda_covariate, 
@@ -77,10 +84,13 @@ dds_wiarda_full <- DESeqDataSetFromMatrix(countData = wiarda_data_raw,
 
 dds_wiarda_full_vst <- vst(dds_wiarda_full)
 
+saveRDS(dds_wiarda_full_vst, file = "/home/workspace/jogrady/ML4TB/work/normalisation/wiarda_dds_vst.rds")
+
 dds_wiarda_full_vst[,dds_wiarda_full_vst$Week == "W0" | dds_wiarda_full_vst$Week == "W4"]
 
-dds_wiarda_full
 
+
+dds_wiarda_full_test <- readRDS("/home/workspace/jogrady/ML4TB/work/normalisation/wiarda_dds_vst.rds")
 
 
 
@@ -128,7 +138,7 @@ wiarda_W10_samples_ggplot <- ggplot(dds_wiarda_full_pca_data_W10, aes(PC1, PC2, 
 
 library(patchwork)
 library(cowplot)
-wiarda_all_samples_ggplot + wiarda_W0_samples_ggplot 
+
 
 
 wiarda_row <- plot_grid(wiarda_all_samples_ggplot + theme(legend.position="none"), wiarda_W0_samples_ggplot + theme(legend.position="none"), 
@@ -154,7 +164,7 @@ dds_abdelaal_full <- DESeqDataSetFromMatrix(countData = abdelaal_data_raw,
 
 
 dds_abdelaal_full_vst <- vst(dds_abdelaal_full)
-
+saveRDS(dds_wiarda_full_vst, file = "/home/workspace/jogrady/ML4TB/work/normalisation/abdelaal_dds_vst.rds")
 dds_abdelaal_full_vst[,dds_abdelaal_full_vst$Week == "W0" | dds_abdelaal_full_vst$Week == "W4"]
 
 dds_abdelaal_full
@@ -223,6 +233,7 @@ dds_kirsten_full <- DESeqDataSetFromMatrix(countData = kirsten_data_raw,
 
 
 dds_kirsten_full_vst <- vst(dds_kirsten_full)
+saveRDS(dds_wiarda_full_vst, file = "/home/workspace/jogrady/ML4TB/work/normalisation/kirsten_dds_vst.rds")
 dds_kirsten_full
 
 
@@ -326,6 +337,7 @@ dds_kirsten_pbl_full <- DESeqDataSetFromMatrix(countData = kirsten_pbl_raw,
 
 
 dds_kirsten_pbl_full_vst <- vst(dds_kirsten_pbl_full)
+saveRDS(dds_wiarda_full_vst, file = "/home/workspace/jogrady/ML4TB/work/normalisation/kirsten_pbl_dds_vst.rds")
 dds_kirsten_pbl_full
 
 
@@ -407,6 +419,3 @@ write.table(wiarda_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normal
 write.table(kirsten_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/kirsten_vst_normalised_data.txt", quote = FALSE, sep = "\t")
 write.table(kirsten_pbl_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/kirsten_pbl_vst_normalised_data.txt", quote = FALSE, sep = "\t")
 write.table(abdelaal_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/abdelaal_vst_normalised_data.txt", quote = FALSE, sep = "\t")
-
-
-
