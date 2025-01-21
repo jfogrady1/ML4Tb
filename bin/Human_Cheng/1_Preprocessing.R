@@ -140,7 +140,7 @@ vstNormalizedExpressionDataForVal <- varianceStabilizingTransformation(dds_val, 
 
 # extract the counts form transformed object
 test_counts_normalised  <- assay(vstNormalizedExpressionDataForTest)
-train_counts_normalised_test <- assay(vstNormalizedExpressionDataForTest)
+train_counts_normalised_test <- assay(vstNormalizedExpressionDataForTrain)
 val_counts_normalised_test <- assay(vstNormalizedExpressionDataForVal)
 
 all(annotation$gene_id == rownames(test_counts_normalised))
@@ -232,14 +232,70 @@ colnames(metadata_test)
 
 pcaData <- plotPCA(vsd, intgroup=c("tb", "cohort"), returnData=TRUE)
 percentVar <- round(100 * attr(pcaData, "percentVar"))
-ggplot(pcaData, aes(PC1, PC2, color=cohort, shape=tb)) +
+p_all_tb <- ggplot(pcaData, aes(PC1, PC2, color=tb)) +
   geom_point(size=3) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
-  coord_fixed()
+  coord_fixed() + theme_bw()
 
-View(as.data.frame(res))
-plotPCA(vsd, intgroup = c("cohort"), shape = c("tb"))
+p_all_cohort <-  ggplot(pcaData, aes(PC1, PC2, color=cohort)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  coord_fixed() + theme_bw()
+
+library(cowplot)
+plot_grid(p_all_tb, p_all_cohort, ncol = 1)
+
+ggsave("/home/workspace/jogrady/ML4TB/work/human/PCA_all_samples_status_cohort.pdf", width = 12, height = 8, dpi = 600)
+
+
+
+
+# Read in the data for each
+dds_train = readRDS("/home/workspace/jogrady/ML4TB/work/normalisation/individual_deseq2_objects/human_train.rds")
+dds_test = readRDS("/home/workspace/jogrady/ML4TB/work/normalisation/individual_deseq2_objects/human_test.rds")
+dds_val = readRDS("/home/workspace/jogrady/ML4TB/work/normalisation/individual_deseq2_objects/human_val.rds")
+
+vsd_train <- vst(dds_train)
+vsd_test <- vst(dds_test)
+vsd_val <- vst(dds_val)
+
+# Train
+pcaData <- plotPCA(vsd_train, intgroup=c("tb", "cohort"), returnData=TRUE)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+p_train_tb <- ggplot(pcaData, aes(PC1, PC2, color=tb, shape = cohort)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  coord_fixed(ylim = c(-30,30), xlim = c(-70,70))+ theme_bw()
+p_train_tb
+
+
+pcaData <- plotPCA(vsd_test, intgroup=c("tb", "cohort"), returnData=TRUE)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+p_test_tb <- ggplot(pcaData, aes(PC1, PC2, color=tb, shape = cohort)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  coord_fixed(ylim = c(-30,30), xlim = c(-70,70)) + theme_bw()
+p_test_tb
+
+
+pcaData <- plotPCA(vsd_val, intgroup=c("tb", "cohort"), returnData=TRUE)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+p_val_tb <- ggplot(pcaData, aes(PC1, PC2, color=tb, shape = cohort)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  coord_fixed(ylim = c(-40,40), xlim = c(-70,70)) + theme_bw()
+p_val_tb
+
+plot_grid(p_train_tb, p_test_tb, p_val_tb, ncol = 1)
+ggsave("/home/workspace/jogrady/ML4TB/work/human/PCA_each_set_status_cohort.pdf", width = 12, height = 8, dpi = 600)
+
+
+plotPCA(vsd, intgroup = c("cohort"), shape = c("hiv"))
 
 
 View(metadata_file_modif)
