@@ -24,12 +24,12 @@ sample_mapping_abdelaal = dict(zip(samples_abdelaal["Sample_SRR"], samples_abdel
 sample_mapping_alonso = dict(zip(samples_alonso["Sample_SRR"], samples_alonso["Animal_Code"]))
 
 # Set the output directory path
-output_dir_kirsten = "/home/workspace/jogrady/ML4TB/data/kirsten/individual/"
-output_dir_wiarda = "/home/workspace/jogrady/ML4TB/data/wiarda/"
-output_dir_johnston = "/home/workspace/jogrady/ML4TB/data/johnston/"
-output_dir_odonoghue = "/home/workspace/jogrady/ML4TB/data/odonoghue/"
-output_dir_kirsten_pbl = "/home/workspace/jogrady/ML4TB/data/kirsten_pbl/"
-output_dir_alonso = "/home/workspace/jogrady/ML4TB/data/alonso/"
+output_dir_kirsten = "data/kirsten/individual/"
+output_dir_wiarda = "data/wiarda/"
+output_dir_johnston = "data/johnston/"
+output_dir_odonoghue = "data/odonoghue/"
+output_dir_kirsten_pbl = "data/kirsten_pbl/"
+output_dir_alonso = "data/alonso/"
 
 
 
@@ -139,9 +139,9 @@ sample_ids_kirsten_pbl = ['A016_CON','A017_CON','A018_CON','A020_CON','A022_CON'
 
 # functions
 def get_fq1(wildcards):
-    return sorted(glob.glob("/home/workspace/jogrady/ML4TB/data/kirsten/individual/" + wildcards.sample_id + "_*_R1.fastq.gz"))
+    return sorted(glob.glob("data/kirsten/individual/" + wildcards.sample_id + "_*_R1.fastq.gz"))
 def get_fq2(wildcards):
-    return sorted(glob.glob("/home/workspace/jogrady/ML4TB/data/kirsten/individual/" + wildcards.sample_id + "_*_R2.fastq.gz"))
+    return sorted(glob.glob("data/kirsten/individual/" + wildcards.sample_id + "_*_R2.fastq.gz"))
 
 
 # Rule to specify the final target files for all samples
@@ -167,49 +167,49 @@ rule all:
             sample_code=samples_odonoghue["Animal_Code"],
             run=[1, 2]
         ),
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/multiqc_report.html',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/fastqc/multiqc_report.html',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/fastqc/multiqc_report.html',
-        expand("/home/workspace/jogrady/ML4TB/data/alonso/{sample_code_alonso}.fastq.gz", sample_code_alonso = alonso_run_codes), # not paired end
-        expand("/home/workspace/jogrady/ML4TB/data/kirsten/combined/{sample_id}_R1.fastq.gz", sample_id = sample_ids, lane = lanes),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids, N=[1, 2]),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids_wiarda, N=[1, 2]),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids_johnston, N=[1, 2]),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids_odonoghue, N=[1, 2]),
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/multiqc_report.html',
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{sample_id}_R{N}_trimmed.fastq.gz', sample_id = sample_ids, N = [1,2]),
-         expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/{sample_id}_R{N}_trimmed.fastq.gz', sample_id = sample_ids_wiarda, N = [1,2]),
-         expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/{sample_id}_R{N}_trimmed.fastq.gz', sample_id = sample_ids_johnston, N = [1,2]),
-         expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/{sample_id}_R{N}_trimmed.fastq.gz', sample_id = sample_ids_odonoghue, N = [1,2]),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id=sample_ids, N=[1, 2]),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id=sample_ids_wiarda, N=[1, 2]),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id=sample_ids_johnston, N=[1, 2]),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id=sample_ids_odonoghue, N=[1, 2]),
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/multiqc_report.html',
-        directory("/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/"),
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/fastqc/multiqc_report.html',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/fastqc/multiqc_report.html',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/fastqc/multiqc_report.html',
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids_wiarda),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids_johnston),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids_odonoghue),
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts.txt',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Quantification/johnston_count_matrix_clean.txt',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Quantification/odonoghue_count_matrix_clean.txt',
-        expand("/home/workspace/jogrady/ML4TB/data/kirsten_pbl/{sample_code_kirsten_pbl}.fastq.gz", sample_code_kirsten_pbl = sample_ids_kirsten_pbl), # not paired end
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.zip', sample_id=sample_ids_kirsten_pbl),
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/multiqc_report.html',
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/{sample_id}_trimmed.fastq.gz', sample_id = sample_ids_kirsten_pbl),
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip', sample_id = sample_ids_kirsten_pbl),
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/multiqc_report.html',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/kirsten_pbl_count_matrix_clean.txt',
-        expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/{sample_id}_trimmed.fastq.gz', sample_id = sample_ids_alonso),
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/fastqc/multiqc_report.html',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/fastqc/multiqc_report.html',
-        '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Quantification/alonso_count_matrix_clean.txt',
+        'work/RNA_seq/wiarda/fastqc/multiqc_report.html',
+        'work/RNA_seq/johnston/fastqc/multiqc_report.html',
+        'work/RNA_seq/odonoghue/fastqc/multiqc_report.html',
+        expand("data/alonso/{sample_code_alonso}.fastq.gz", sample_code_alonso = alonso_run_codes), # not paired end
+        expand("data/kirsten/combined/{sample_id}_R1.fastq.gz", sample_id = sample_ids, lane = lanes),
+        expand('work/RNA_seq/kirsten/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids, N=[1, 2]),
+        expand('work/RNA_seq/wiarda/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids_wiarda, N=[1, 2]),
+        expand('work/RNA_seq/johnston/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids_johnston, N=[1, 2]),
+        expand('work/RNA_seq/odonoghue/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id=sample_ids_odonoghue, N=[1, 2]),
+        'work/RNA_seq/kirsten/fastqc/multiqc_report.html',
+        expand('work/RNA_seq/kirsten/trimmed/{sample_id}_R{N}_trimmed.fastq.gz', sample_id = sample_ids, N = [1,2]),
+         expand('work/RNA_seq/wiarda/trimmed/{sample_id}_R{N}_trimmed.fastq.gz', sample_id = sample_ids_wiarda, N = [1,2]),
+         expand('work/RNA_seq/johnston/trimmed/{sample_id}_R{N}_trimmed.fastq.gz', sample_id = sample_ids_johnston, N = [1,2]),
+         expand('work/RNA_seq/odonoghue/trimmed/{sample_id}_R{N}_trimmed.fastq.gz', sample_id = sample_ids_odonoghue, N = [1,2]),
+        expand('work/RNA_seq/kirsten/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id=sample_ids, N=[1, 2]),
+        expand('work/RNA_seq/wiarda/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id=sample_ids_wiarda, N=[1, 2]),
+        expand('work/RNA_seq/johnston/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id=sample_ids_johnston, N=[1, 2]),
+        expand('work/RNA_seq/odonoghue/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id=sample_ids_odonoghue, N=[1, 2]),
+        'work/RNA_seq/kirsten/trimmed/fastqc/multiqc_report.html',
+        directory("data/kirsten/star-genome/"),
+        'work/RNA_seq/wiarda/trimmed/fastqc/multiqc_report.html',
+        'work/RNA_seq/johnston/trimmed/fastqc/multiqc_report.html',
+        'work/RNA_seq/odonoghue/trimmed/fastqc/multiqc_report.html',
+        expand('work/RNA_seq/kirsten/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids),
+        expand('work/RNA_seq/wiarda/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids_wiarda),
+        expand('work/RNA_seq/johnston/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids_johnston),
+        expand('work/RNA_seq/odonoghue/Alignment/{sample_id}_Log.final.out', sample_id = sample_ids_odonoghue),
+        'work/RNA_seq/kirsten/Quantification/gene_counts.txt',
+        'work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt',
+        'work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt',
+        'work/RNA_seq/johnston/Quantification/johnston_count_matrix_clean.txt',
+        'work/RNA_seq/odonoghue/Quantification/odonoghue_count_matrix_clean.txt',
+        expand("data/kirsten_pbl/{sample_code_kirsten_pbl}.fastq.gz", sample_code_kirsten_pbl = sample_ids_kirsten_pbl), # not paired end
+        expand('work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.zip', sample_id=sample_ids_kirsten_pbl),
+        'work/RNA_seq/kirsten_pbl/fastqc/multiqc_report.html',
+        expand('work/RNA_seq/kirsten_pbl/trimmed/{sample_id}_trimmed.fastq.gz', sample_id = sample_ids_kirsten_pbl),
+        expand('work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip', sample_id = sample_ids_kirsten_pbl),
+        'work/RNA_seq/kirsten_pbl/trimmed/fastqc/multiqc_report.html',
+        'work/RNA_seq/kirsten_pbl/Quantification/kirsten_pbl_count_matrix_clean.txt',
+        expand('work/RNA_seq/alonso/trimmed/{sample_id}_trimmed.fastq.gz', sample_id = sample_ids_alonso),
+        'work/RNA_seq/alonso/fastqc/multiqc_report.html',
+        'work/RNA_seq/alonso/trimmed/fastqc/multiqc_report.html',
+        'work/RNA_seq/alonso/Quantification/alonso_count_matrix_clean.txt',
         
         
 
@@ -222,7 +222,7 @@ rule download_paired_end_rna_seq:
     params:
         ena_run=lambda wildcards: samples[samples["sample_code"] == wildcards.sample_code]["ena_run"].values[0]
     conda:
-        "/home/workspace/jogrady/ML4TB/envs/fastqdl.yml"
+        "envs/fastqdl.yml"
     shell:
         """
         # Download paired-end reads using fastq-dl
@@ -240,8 +240,8 @@ rule combineFiles:
         reads_1 = get_fq1,
         reads_2 = get_fq2
     output:
-        r1="/home/workspace/jogrady/ML4TB/data/kirsten/combined/{sample_id}_R1.fastq.gz",
-        r2="/home/workspace/jogrady/ML4TB/data/kirsten/combined/{sample_id}_R2.fastq.gz"
+        r1="data/kirsten/combined/{sample_id}_R1.fastq.gz",
+        r2="data/kirsten/combined/{sample_id}_R2.fastq.gz"
     shell:
         """
         cat {input.reads_1} > {output.r1}
@@ -251,37 +251,37 @@ rule combineFiles:
 
 rule fastqc:
     input:
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/data/kirsten/combined/{wildcards.sample_id}_R1.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/data/kirsten/combined/{wildcards.sample_id}_R2.fastq.gz"]
+        reads = lambda wildcards:[f"data/kirsten/combined/{wildcards.sample_id}_R1.fastq.gz",
+                                  f"data/kirsten/combined/{wildcards.sample_id}_R2.fastq.gz"]
     output:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/{{sample_id}}_R{N}_fastqc.zip', N = (1,2)),
-        html = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/{{sample_id}}_R{N}_fastqc.html', N = (1,2))
+        reads = expand('work/RNA_seq/kirsten/fastqc/{{sample_id}}_R{N}_fastqc.zip', N = (1,2)),
+        html = expand('work/RNA_seq/kirsten/fastqc/{{sample_id}}_R{N}_fastqc.html', N = (1,2))
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/'
+        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o work/RNA_seq/kirsten/fastqc/'
 
 
 rule mutltiqc:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id = sample_ids, N = (1,2))
+        reads = expand('work/RNA_seq/kirsten/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id = sample_ids, N = (1,2))
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/multiqc_report.html'
+        report='work/RNA_seq/kirsten/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/fastqc/
+        multiqc {input} -f -o work/RNA_seq/kirsten/fastqc/
         """
 
 rule trimming:
     input:
-        untrimmed_reads = lambda wildcards: [f"/home/workspace/jogrady/ML4TB/data/kirsten/combined/{wildcards.sample_id}_R1.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/data/kirsten/combined/{wildcards.sample_id}_R2.fastq.gz"],
-        adapters = "/home/workspace/jogrady/ML4TB/data/adapters/Illumina_adpters.fa"
+        untrimmed_reads = lambda wildcards: [f"data/kirsten/combined/{wildcards.sample_id}_R1.fastq.gz",
+                                  f"data/kirsten/combined/{wildcards.sample_id}_R2.fastq.gz"],
+        adapters = "data/adapters/Illumina_adpters.fa"
     output:
-        trimmed_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{{sample_id}}_R{N}_trimmed.fastq.gz', N = (1,2)),
-        unpaired_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{{sample_id}}_R{N}_unpaired.fastq.gz', N = (1,2))
+        trimmed_reads=expand('work/RNA_seq/kirsten/trimmed/{{sample_id}}_R{N}_trimmed.fastq.gz', N = (1,2)),
+        unpaired_reads=expand('work/RNA_seq/kirsten/trimmed/{{sample_id}}_R{N}_unpaired.fastq.gz', N = (1,2))
     threads:
         50
     singularity:
@@ -294,27 +294,27 @@ rule trimming:
 
 rule fastqc_trimmed:
     input:
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+        reads = lambda wildcards:[f"work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
     output:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.zip', N = (1,2)),
-        html = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.html', N = (1,2))
+        reads = expand('work/RNA_seq/kirsten/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.zip', N = (1,2)),
+        html = expand('work/RNA_seq/kirsten/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.html', N = (1,2))
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/'
+        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o work/RNA_seq/kirsten/trimmed/fastqc/'
 
 
 rule mutltiqc_trim:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id = sample_ids, N = (1,2))
+        reads = expand('work/RNA_seq/kirsten/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id = sample_ids, N = (1,2))
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/multiqc_report.html'
+        report='work/RNA_seq/kirsten/trimmed/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/fastqc/
+        multiqc {input} -f -o work/RNA_seq/kirsten/trimmed/fastqc/
         """
 
 
@@ -324,14 +324,14 @@ rule build_reference:
         fa="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.dna.toplevel.fa",
         gtf="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf" 
     output:
-        STAR_dir = directory("/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/")  # Please provide the output files names from this step.
+        STAR_dir = directory("data/kirsten/star-genome/")  # Please provide the output files names from this step.
     threads: 20
     shell:
         '''
-        mkdir /home/workspace/jogrady/ML4TB/data/kirsten/star-genome/ # STAR cannot make directory
+        mkdir data/kirsten/star-genome/ # STAR cannot make directory
         STAR-2.7.1a --runThreadN {threads} \
         --runMode genomeGenerate \
-        --genomeDir /home/workspace/jogrady/ML4TB/data/kirsten/star-genome/ \
+        --genomeDir data/kirsten/star-genome/ \
         --genomeFastaFiles {input.fa} \
         --sjdbGTFfile {input.gtf} \
         --sjdbOverhang 99
@@ -341,31 +341,31 @@ rule build_reference:
 
 rule Alignment:
     input:
-        genome = "/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/",
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+        genome = "data/kirsten/star-genome/",
+        reads = lambda wildcards:[f"work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"work/RNA_seq/kirsten/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
     params:
         prefix = lambda wildcards: f'{wildcards.sample_id}'
     output:
-        aligned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
-        finallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Log.final.out',
-        interlog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Log.progress.out',
-        initiallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Log.out'
+        aligned = 'work/RNA_seq/kirsten/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
+        finallog = 'work/RNA_seq/kirsten/Alignment/{sample_id}_Log.final.out',
+        interlog = 'work/RNA_seq/kirsten/Alignment/{sample_id}_Log.progress.out',
+        initiallog = 'work/RNA_seq/kirsten/Alignment/{sample_id}_Log.out'
     threads: 40
     shell:
         '''
         STAR-2.7.1a  --genomeLoad LoadAndKeep --genomeDir {input.genome} --runThreadN {threads} \
         --readFilesIn {input.reads[0]} {input.reads[1]} --readFilesCommand gunzip -c \
-        --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
+        --outFileNamePrefix work/RNA_seq/kirsten/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
         '''
 
 
 rule featureCounts:
     input:
-        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids),
+        bam = expand('work/RNA_seq/kirsten/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids),
         annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
     output:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/kirsten/Quantification/gene_counts.txt'
     threads: 40
     shell:
         '''
@@ -375,14 +375,14 @@ rule featureCounts:
 
 rule cleanup_FC:
     input:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/kirsten/Quantification/gene_counts.txt'
     output:
-        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/gene_counts_temp.txt',
-        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt',
+        count_matrix_temp =  'work/RNA_seq/kirsten/Quantification/gene_counts_temp.txt',
+        cleaned = 'work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt',
     shell:
         ''' 
         tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
-        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's#work/RNA_seq/kirsten/Alignment/##g' {output.count_matrix_temp}
         sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
         cat {output.count_matrix_temp} > {output.cleaned} 
         '''
@@ -397,7 +397,7 @@ rule download_paired_end_rna_seq_wiarda:
     params:
         ena_run=lambda wildcards: samples_wiarda[samples_wiarda["Animal_Code"] == wildcards.sample_code]["Sample_SRR"].values[0]
     conda:
-        "/home/workspace/jogrady/ML4TB/envs/fastqdl.yml"
+        "envs/fastqdl.yml"
     shell:
         """
         # Download paired-end reads using fastq-dl
@@ -411,37 +411,37 @@ rule download_paired_end_rna_seq_wiarda:
 
 rule fastqc_wiarda:
     input:
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/data/wiarda/{wildcards.sample_id}_R1.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/data/wiarda/{wildcards.sample_id}_R2.fastq.gz"]
+        reads = lambda wildcards:[f"data/wiarda/{wildcards.sample_id}_R1.fastq.gz",
+                                  f"data/wiarda/{wildcards.sample_id}_R2.fastq.gz"]
     output:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/{{sample_id}}_R{N}_fastqc.zip', N = (1,2)),
-        html = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/{{sample_id}}_R{N}_fastqc.html', N = (1,2))
+        reads = expand('work/RNA_seq/wiarda/fastqc/{{sample_id}}_R{N}_fastqc.zip', N = (1,2)),
+        html = expand('work/RNA_seq/wiarda/fastqc/{{sample_id}}_R{N}_fastqc.html', N = (1,2))
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/'
+        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o work/RNA_seq/wiarda/fastqc/'
 
 
 rule mutltiqc_wiarda:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id = sample_ids_wiarda, N = (1,2))
+        reads = expand('work/RNA_seq/wiarda/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id = sample_ids_wiarda, N = (1,2))
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/multiqc_report.html'
+        report='work/RNA_seq/wiarda/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/fastqc/
+        multiqc {input} -f -o work/RNA_seq/wiarda/fastqc/
         """
 
 rule trimming_wiarda:
     input:
-        untrimmed_reads = lambda wildcards: [f"/home/workspace/jogrady/ML4TB/data/wiarda/{wildcards.sample_id}_R1.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/data/wiarda/{wildcards.sample_id}_R2.fastq.gz"],
-        adapters = "/home/workspace/jogrady/ML4TB/data/adapters/Illumina_adpters.fa"
+        untrimmed_reads = lambda wildcards: [f"data/wiarda/{wildcards.sample_id}_R1.fastq.gz",
+                                  f"data/wiarda/{wildcards.sample_id}_R2.fastq.gz"],
+        adapters = "data/adapters/Illumina_adpters.fa"
     output:
-        trimmed_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/{{sample_id}}_R{N}_trimmed.fastq.gz', N = (1,2)),
-        unpaired_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/{{sample_id}}_R{N}_unpaired.fastq.gz', N = (1,2))
+        trimmed_reads=expand('work/RNA_seq/wiarda/trimmed/{{sample_id}}_R{N}_trimmed.fastq.gz', N = (1,2)),
+        unpaired_reads=expand('work/RNA_seq/wiarda/trimmed/{{sample_id}}_R{N}_unpaired.fastq.gz', N = (1,2))
     threads:
         50
     singularity:
@@ -452,54 +452,54 @@ rule trimming_wiarda:
         """
 rule fastqc_trimmed_wiarda:
     input:
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+        reads = lambda wildcards:[f"work/RNA_seq/wiarda/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"work/RNA_seq/wiarda/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
     output:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.zip', N = (1,2)),
-        html = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.html', N = (1,2))
+        reads = expand('work/RNA_seq/wiarda/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.zip', N = (1,2)),
+        html = expand('work/RNA_seq/wiarda/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.html', N = (1,2))
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/fastqc/'
+        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o work/RNA_seq/wiarda/trimmed/fastqc/'
 
 rule mutltiqc_trimmed_wiarda:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id = sample_ids_wiarda, N = (1,2))
+        reads = expand('work/RNA_seq/wiarda/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id = sample_ids_wiarda, N = (1,2))
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/fastqc/multiqc_report.html'
+        report='work/RNA_seq/wiarda/trimmed/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/fastqc/
+        multiqc {input} -f -o work/RNA_seq/wiarda/trimmed/fastqc/
         """
 
 rule Alignment_wiarda:
     input:
-        genome = "/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/", # use the same
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+        genome = "data/kirsten/star-genome/", # use the same
+        reads = lambda wildcards:[f"work/RNA_seq/wiarda/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"work/RNA_seq/wiarda/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
     params:
         prefix = lambda wildcards: f'{wildcards.sample_id}'
     output:
-        aligned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
-        finallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{sample_id}_Log.final.out',
-        interlog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{sample_id}_Log.progress.out',
-        initiallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{sample_id}_Log.out'
+        aligned = 'work/RNA_seq/wiarda/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
+        finallog = 'work/RNA_seq/wiarda/Alignment/{sample_id}_Log.final.out',
+        interlog = 'work/RNA_seq/wiarda/Alignment/{sample_id}_Log.progress.out',
+        initiallog = 'work/RNA_seq/wiarda/Alignment/{sample_id}_Log.out'
     threads: 40
     shell:
         '''
         STAR-2.7.1a  --genomeLoad LoadAndKeep --genomeDir {input.genome} --runThreadN {threads} \
         --readFilesIn {input.reads[0]} {input.reads[1]} --readFilesCommand gunzip -c \
-        --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
+        --outFileNamePrefix work/RNA_seq/wiarda/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
         '''
 
 rule featureCounts_wiarda:
     input:
-        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_wiarda),
+        bam = expand('work/RNA_seq/wiarda/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_wiarda),
         annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
     output:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/wiarda/Quantification/gene_counts.txt'
     threads: 40
     shell:
         '''
@@ -509,14 +509,14 @@ rule featureCounts_wiarda:
 
 rule cleanup_FC_wiarda:
     input:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/wiarda/Quantification/gene_counts.txt'
     output:
-        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/gene_counts_temp.txt',
-        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt',
+        count_matrix_temp =  'work/RNA_seq/wiarda/Quantification/gene_counts_temp.txt',
+        cleaned = 'work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt',
     shell:
         ''' 
         tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
-        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's#work/RNA_seq/wiarda/Alignment/##g' {output.count_matrix_temp}
         sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
         cat {output.count_matrix_temp} > {output.cleaned} 
         '''
@@ -532,7 +532,7 @@ rule download_paired_end_rna_seq_johnston:
     params:
         ena_run=lambda wildcards: samples_johnston[samples_johnston["Animal_Code"] == wildcards.sample_code]["Sample_SRR"].values[0]
     conda:
-        "/home/workspace/jogrady/ML4TB/envs/fastqdl.yml"
+        "envs/fastqdl.yml"
     shell:
         """
         # Download paired-end reads using fastq-dl
@@ -547,37 +547,37 @@ rule download_paired_end_rna_seq_johnston:
 
 rule fastqc_johnston:
     input:
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/data/johnston/{wildcards.sample_id}_R1.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/data/johnston/{wildcards.sample_id}_R2.fastq.gz"]
+        reads = lambda wildcards:[f"data/johnston/{wildcards.sample_id}_R1.fastq.gz",
+                                  f"data/johnston/{wildcards.sample_id}_R2.fastq.gz"]
     output:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/fastqc/{{sample_id}}_R{N}_fastqc.zip', N = (1,2)),
-        html = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/fastqc/{{sample_id}}_R{N}_fastqc.html', N = (1,2))
+        reads = expand('work/RNA_seq/johnston/fastqc/{{sample_id}}_R{N}_fastqc.zip', N = (1,2)),
+        html = expand('work/RNA_seq/johnston/fastqc/{{sample_id}}_R{N}_fastqc.html', N = (1,2))
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/fastqc/'
+        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o work/RNA_seq/johnston/fastqc/'
 
 
 rule mutltiqc_johnston:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id = sample_ids_johnston, N = (1,2))
+        reads = expand('work/RNA_seq/johnston/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id = sample_ids_johnston, N = (1,2))
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/fastqc/multiqc_report.html'
+        report='work/RNA_seq/johnston/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/fastqc/
+        multiqc {input} -f -o work/RNA_seq/johnston/fastqc/
         """
 
 rule trimming_johnston:
     input:
-        untrimmed_reads = lambda wildcards: [f"/home/workspace/jogrady/ML4TB/data/johnston/{wildcards.sample_id}_R1.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/data/johnston/{wildcards.sample_id}_R2.fastq.gz"],
-        adapters = "/home/workspace/jogrady/ML4TB/data/adapters/Illumina_adpters.fa"
+        untrimmed_reads = lambda wildcards: [f"data/johnston/{wildcards.sample_id}_R1.fastq.gz",
+                                  f"data/johnston/{wildcards.sample_id}_R2.fastq.gz"],
+        adapters = "data/adapters/Illumina_adpters.fa"
     output:
-        trimmed_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/{{sample_id}}_R{N}_trimmed.fastq.gz', N = (1,2)),
-        unpaired_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/{{sample_id}}_R{N}_unpaired.fastq.gz', N = (1,2))
+        trimmed_reads=expand('work/RNA_seq/johnston/trimmed/{{sample_id}}_R{N}_trimmed.fastq.gz', N = (1,2)),
+        unpaired_reads=expand('work/RNA_seq/johnston/trimmed/{{sample_id}}_R{N}_unpaired.fastq.gz', N = (1,2))
     threads:
         50
     singularity:
@@ -588,54 +588,54 @@ rule trimming_johnston:
         """
 rule fastqc_trimmed_johnston:
     input:
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+        reads = lambda wildcards:[f"work/RNA_seq/johnston/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"work/RNA_seq/johnston/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
     output:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.zip', N = (1,2)),
-        html = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.html', N = (1,2))
+        reads = expand('work/RNA_seq/johnston/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.zip', N = (1,2)),
+        html = expand('work/RNA_seq/johnston/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.html', N = (1,2))
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/fastqc/'
+        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o work/RNA_seq/johnston/trimmed/fastqc/'
 
 rule mutltiqc_trimmed_johnston:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id = sample_ids_johnston, N = (1,2))
+        reads = expand('work/RNA_seq/johnston/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id = sample_ids_johnston, N = (1,2))
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/fastqc/multiqc_report.html'
+        report='work/RNA_seq/johnston/trimmed/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/fastqc/
+        multiqc {input} -f -o work/RNA_seq/johnston/trimmed/fastqc/
         """
 
 rule Alignment_johnston:
     input:
-        genome = "/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/", # use the same
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+        genome = "data/kirsten/star-genome/", # use the same
+        reads = lambda wildcards:[f"work/RNA_seq/johnston/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"work/RNA_seq/johnston/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
     params:
         prefix = lambda wildcards: f'{wildcards.sample_id}'
     output:
-        aligned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
-        finallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Alignment/{sample_id}_Log.final.out',
-        interlog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Alignment/{sample_id}_Log.progress.out',
-        initiallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Alignment/{sample_id}_Log.out'
+        aligned = 'work/RNA_seq/johnston/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
+        finallog = 'work/RNA_seq/johnston/Alignment/{sample_id}_Log.final.out',
+        interlog = 'work/RNA_seq/johnston/Alignment/{sample_id}_Log.progress.out',
+        initiallog = 'work/RNA_seq/johnston/Alignment/{sample_id}_Log.out'
     threads: 40
     shell:
         '''
         STAR-2.7.1a  --genomeLoad LoadAndKeep --genomeDir {input.genome} --runThreadN {threads} \
         --readFilesIn {input.reads[0]} {input.reads[1]} --readFilesCommand gunzip -c \
-        --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
+        --outFileNamePrefix work/RNA_seq/johnston/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
         '''
 
 rule featureCounts_johnston:
     input:
-        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_johnston),
+        bam = expand('work/RNA_seq/johnston/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_johnston),
         annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
     output:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/johnston/Quantification/gene_counts.txt'
     threads: 40
     shell:
         '''
@@ -645,14 +645,14 @@ rule featureCounts_johnston:
 
 rule cleanup_FC_johnston:
     input:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/johnston/Quantification/gene_counts.txt'
     output:
-        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Quantification/gene_counts_temp.txt',
-        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Quantification/johnston_count_matrix_clean.txt',
+        count_matrix_temp =  'work/RNA_seq/johnston/Quantification/gene_counts_temp.txt',
+        cleaned = 'work/RNA_seq/johnston/Quantification/johnston_count_matrix_clean.txt',
     shell:
         ''' 
         tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
-        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/johnston/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's#work/RNA_seq/johnston/Alignment/##g' {output.count_matrix_temp}
         sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
         cat {output.count_matrix_temp} > {output.cleaned} 
         '''
@@ -669,7 +669,7 @@ rule download_paired_end_rna_seq_odonoghue:
     params:
         ena_run=lambda wildcards: samples_odonoghue[samples_odonoghue["Animal_Code"] == wildcards.sample_code]["Sample_SRR"].values[0]
     conda:
-        "/home/workspace/jogrady/ML4TB/envs/fastqdl.yml"
+        "envs/fastqdl.yml"
     shell:
         """
         # Download paired-end reads using fastq-dl
@@ -684,37 +684,37 @@ rule download_paired_end_rna_seq_odonoghue:
 
 rule fastqc_odonoghue:
     input:
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/data/odonoghue/{wildcards.sample_id}_R1.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/data/odonoghue/{wildcards.sample_id}_R2.fastq.gz"]
+        reads = lambda wildcards:[f"data/odonoghue/{wildcards.sample_id}_R1.fastq.gz",
+                                  f"data/odonoghue/{wildcards.sample_id}_R2.fastq.gz"]
     output:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/fastqc/{{sample_id}}_R{N}_fastqc.zip', N = (1,2)),
-        html = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/fastqc/{{sample_id}}_R{N}_fastqc.html', N = (1,2))
+        reads = expand('work/RNA_seq/odonoghue/fastqc/{{sample_id}}_R{N}_fastqc.zip', N = (1,2)),
+        html = expand('work/RNA_seq/odonoghue/fastqc/{{sample_id}}_R{N}_fastqc.html', N = (1,2))
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/fastqc/'
+        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o work/RNA_seq/odonoghue/fastqc/'
 
 
 rule mutltiqc_odonoghue:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id = sample_ids_odonoghue, N = (1,2))
+        reads = expand('work/RNA_seq/odonoghue/fastqc/{sample_id}_R{N}_fastqc.zip', sample_id = sample_ids_odonoghue, N = (1,2))
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/fastqc/multiqc_report.html'
+        report='work/RNA_seq/odonoghue/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/fastqc/
+        multiqc {input} -f -o work/RNA_seq/odonoghue/fastqc/
         """
 
 rule trimming_odonoghue:
     input:
-        untrimmed_reads = lambda wildcards: [f"/home/workspace/jogrady/ML4TB/data/odonoghue/{wildcards.sample_id}_R1.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/data/odonoghue/{wildcards.sample_id}_R2.fastq.gz"],
-        adapters = "/home/workspace/jogrady/ML4TB/data/adapters/Illumina_adpters.fa"
+        untrimmed_reads = lambda wildcards: [f"data/odonoghue/{wildcards.sample_id}_R1.fastq.gz",
+                                  f"data/odonoghue/{wildcards.sample_id}_R2.fastq.gz"],
+        adapters = "data/adapters/Illumina_adpters.fa"
     output:
-        trimmed_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/{{sample_id}}_R{N}_trimmed.fastq.gz', N = (1,2)),
-        unpaired_reads=expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/{{sample_id}}_R{N}_unpaired.fastq.gz', N = (1,2))
+        trimmed_reads=expand('work/RNA_seq/odonoghue/trimmed/{{sample_id}}_R{N}_trimmed.fastq.gz', N = (1,2)),
+        unpaired_reads=expand('work/RNA_seq/odonoghue/trimmed/{{sample_id}}_R{N}_unpaired.fastq.gz', N = (1,2))
     threads:
         50
     singularity:
@@ -725,54 +725,54 @@ rule trimming_odonoghue:
         """
 rule fastqc_trimmed_odonoghue:
     input:
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+        reads = lambda wildcards:[f"work/RNA_seq/odonoghue/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"work/RNA_seq/odonoghue/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
     output:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.zip', N = (1,2)),
-        html = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.html', N = (1,2))
+        reads = expand('work/RNA_seq/odonoghue/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.zip', N = (1,2)),
+        html = expand('work/RNA_seq/odonoghue/trimmed/fastqc/{{sample_id}}_R{N}_trimmed_fastqc.html', N = (1,2))
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/fastqc/'
+        'fastqc {input.reads[0]} {input.reads[1]} -t {threads} -o work/RNA_seq/odonoghue/trimmed/fastqc/'
 
 rule mutltiqc_trimmed_odonoghue:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id = sample_ids_odonoghue, N = (1,2))
+        reads = expand('work/RNA_seq/odonoghue/trimmed/fastqc/{sample_id}_R{N}_trimmed_fastqc.zip', sample_id = sample_ids_odonoghue, N = (1,2))
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/fastqc/multiqc_report.html'
+        report='work/RNA_seq/odonoghue/trimmed/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/fastqc/
+        multiqc {input} -f -o work/RNA_seq/odonoghue/trimmed/fastqc/
         """
 
 rule Alignment_odonoghue:
     input:
-        genome = "/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/", # use the same
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
-                                  f"/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
+        genome = "data/kirsten/star-genome/", # use the same
+        reads = lambda wildcards:[f"work/RNA_seq/odonoghue/trimmed/{wildcards.sample_id}_R1_trimmed.fastq.gz",
+                                  f"work/RNA_seq/odonoghue/trimmed/{wildcards.sample_id}_R2_trimmed.fastq.gz"]
     params:
         prefix = lambda wildcards: f'{wildcards.sample_id}'
     output:
-        aligned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
-        finallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Alignment/{sample_id}_Log.final.out',
-        interlog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Alignment/{sample_id}_Log.progress.out',
-        initiallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Alignment/{sample_id}_Log.out'
+        aligned = 'work/RNA_seq/odonoghue/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
+        finallog = 'work/RNA_seq/odonoghue/Alignment/{sample_id}_Log.final.out',
+        interlog = 'work/RNA_seq/odonoghue/Alignment/{sample_id}_Log.progress.out',
+        initiallog = 'work/RNA_seq/odonoghue/Alignment/{sample_id}_Log.out'
     threads: 40
     shell:
         '''
         STAR-2.7.1a  --genomeLoad LoadAndKeep --genomeDir {input.genome} --runThreadN {threads} \
         --readFilesIn {input.reads[0]} {input.reads[1]} --readFilesCommand gunzip -c \
-        --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
+        --outFileNamePrefix work/RNA_seq/odonoghue/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
         '''
 
 rule featureCounts_odonoghue:
     input:
-        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_odonoghue),
+        bam = expand('work/RNA_seq/odonoghue/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_odonoghue),
         annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
     output:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/odonoghue/Quantification/gene_counts.txt'
     threads: 40
     shell:
         '''
@@ -782,14 +782,14 @@ rule featureCounts_odonoghue:
 
 rule cleanup_FC_odonoghue:
     input:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/odonoghue/Quantification/gene_counts.txt'
     output:
-        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Quantification/gene_counts_temp.txt',
-        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Quantification/odonoghue_count_matrix_clean.txt',
+        count_matrix_temp =  'work/RNA_seq/odonoghue/Quantification/gene_counts_temp.txt',
+        cleaned = 'work/RNA_seq/odonoghue/Quantification/odonoghue_count_matrix_clean.txt',
     shell:
         ''' 
         tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
-        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/odonoghue/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's#work/RNA_seq/odonoghue/Alignment/##g' {output.count_matrix_temp}
         sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
         cat {output.count_matrix_temp} > {output.cleaned} 
         '''
@@ -809,47 +809,47 @@ rule download_single_end_kirsten_pbl:
     params:
         ena_run= lambda wildcards: samples_kirsten_pbl[samples_kirsten_pbl["Run_Code"] == wildcards.sample_code_kirsten_pbl]["Sample_SRR"].values[0]
     conda:
-        "/home/workspace/jogrady/ML4TB/envs/fastqdl.yml"
+        "envs/fastqdl.yml"
     shell:
         """
         # Download paired-end reads using fastq-dl
         fastq-dl -a {params.ena_run} --cpus 20 -o {output_dir_kirsten_pbl}
 
         # Rename files to match the sample code
-        mv /home/workspace/jogrady/ML4TB/data/kirsten_pbl/{params.ena_run}.fastq.gz {output.r1}
+        mv data/kirsten_pbl/{params.ena_run}.fastq.gz {output.r1}
         """
 
 rule fastqc_kirsten_pbl:
     input:
-        reads = lambda wildcards: f"/home/workspace/jogrady/ML4TB/data/kirsten_pbl/{wildcards.sample_id}.fastq.gz"
+        reads = lambda wildcards: f"data/kirsten_pbl/{wildcards.sample_id}.fastq.gz"
     output:
-        reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.zip',
-        html = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.html'
+        reads = 'work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.zip',
+        html = 'work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.html'
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/'
+        'fastqc {input.reads} -t {threads} -o work/RNA_seq/kirsten_pbl/fastqc/'
 
 
 
 rule mutltiqc_kirsten_pbl:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.zip', sample_id = sample_ids_kirsten_pbl)
+        reads = expand('work/RNA_seq/kirsten_pbl/fastqc/{sample_id}_fastqc.zip', sample_id = sample_ids_kirsten_pbl)
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/multiqc_report.html'
+        report='work/RNA_seq/kirsten_pbl/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/fastqc/
+        multiqc {input} -f -o work/RNA_seq/kirsten_pbl/fastqc/
         """
 
 rule trimming_kirsten_pbl:
     input:
-        untrimmed_reads = "/home/workspace/jogrady/ML4TB/data/kirsten_pbl/{sample_id}.fastq.gz",
-        adapters = "/home/workspace/jogrady/ML4TB/data/adapters/Illumina_adpters.fa"
+        untrimmed_reads = "data/kirsten_pbl/{sample_id}.fastq.gz",
+        adapters = "data/adapters/Illumina_adpters.fa"
     output:
-        trimmed_reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/{sample_id}_trimmed.fastq.gz'
+        trimmed_reads = 'work/RNA_seq/kirsten_pbl/trimmed/{sample_id}_trimmed.fastq.gz'
     threads:
         50
     singularity:
@@ -861,53 +861,53 @@ rule trimming_kirsten_pbl:
 
 rule fastqc_kirsten_pbl_trimmed:
     input:
-        reads = lambda wildcards: f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"
+        reads = lambda wildcards: f"work/RNA_seq/kirsten_pbl/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"
     output:
-        reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip',
-        html = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.html'
+        reads = 'work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip',
+        html = 'work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.html'
     threads:
         40
     resources:
         mem_mb = 16000
     shell:
-        'fastqc {input.reads} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/'
+        'fastqc {input.reads} -t {threads} -o work/RNA_seq/kirsten_pbl/trimmed/fastqc/'
 
 
 rule mutltiqc_kirsten_pbl_trimmed:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip', sample_id = sample_ids_kirsten_pbl)
+        reads = expand('work/RNA_seq/kirsten_pbl/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip', sample_id = sample_ids_kirsten_pbl)
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/multiqc_report.html'
+        report='work/RNA_seq/kirsten_pbl/trimmed/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/fastqc/
+        multiqc {input} -f -o work/RNA_seq/kirsten_pbl/trimmed/fastqc/
         """
 
 rule Alignment_kirsten_pbl:
     input:
-        genome = "/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/", # use the same
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"]
+        genome = "data/kirsten/star-genome/", # use the same
+        reads = lambda wildcards:[f"work/RNA_seq/kirsten_pbl/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"]
     params:
         prefix = lambda wildcards: f'{wildcards.sample_id}'
     output:
-        aligned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
-        finallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Log.final.out',
-        interlog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Log.progress.out',
-        initiallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Log.out'
+        aligned = 'work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
+        finallog = 'work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Log.final.out',
+        interlog = 'work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Log.progress.out',
+        initiallog = 'work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Log.out'
     threads: 40
     shell:
         '''
         STAR-2.7.1a  --genomeLoad LoadAndKeep --genomeDir {input.genome} --runThreadN {threads} \
         --readFilesIn {input.reads} --readFilesCommand gunzip -c \
-        --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
+        --outFileNamePrefix work/RNA_seq/kirsten_pbl/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
         '''
 
 rule featureCounts_kirsten_pbl:
     input:
-        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_kirsten_pbl),
+        bam = expand('work/RNA_seq/kirsten_pbl/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_kirsten_pbl),
         annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
     output:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/kirsten_pbl/Quantification/gene_counts.txt'
     threads: 40
     shell:
         '''
@@ -918,14 +918,14 @@ rule featureCounts_kirsten_pbl:
 
 rule cleanup_FC_kirsten_pbl:
     input:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/kirsten_pbl/Quantification/gene_counts.txt'
     output:
-        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/gene_counts_temp.txt',
-        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/kirsten_pbl_count_matrix_clean.txt',
+        count_matrix_temp =  'work/RNA_seq/kirsten_pbl/Quantification/gene_counts_temp.txt',
+        cleaned = 'work/RNA_seq/kirsten_pbl/Quantification/kirsten_pbl_count_matrix_clean.txt',
     shell:
         ''' 
         tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
-        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's#work/RNA_seq/kirsten_pbl/Alignment/##g' {output.count_matrix_temp}
         sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
         cat {output.count_matrix_temp} > {output.cleaned} 
         '''
@@ -938,7 +938,7 @@ rule download_single_end_alonso:
     params:
         ena_run= lambda wildcards: samples_alonso[samples_alonso["Animal_Code"] == wildcards.sample_code_alonso]["Sample_SRR"].values[0]
     conda:
-        "/home/workspace/jogrady/ML4TB/envs/fastqdl.yml"
+        "envs/fastqdl.yml"
     #wildcard_constraints: 
      #   sample_code_alonso = "^[CI].*"
     shell:
@@ -947,39 +947,39 @@ rule download_single_end_alonso:
         fastq-dl -a {params.ena_run} --cpus 20 -o {output_dir_alonso}
 
         # Rename files to match the sample code
-        mv /home/workspace/jogrady/ML4TB/data/alonso/{params.ena_run}.fastq.gz {output.r1}
+        mv data/alonso/{params.ena_run}.fastq.gz {output.r1}
         """
 
 rule fastqc_alonso:
     input:
-        reads = lambda wildcards: f"/home/workspace/jogrady/ML4TB/data/alonso/{wildcards.sample_id}.fastq.gz"
+        reads = lambda wildcards: f"data/alonso/{wildcards.sample_id}.fastq.gz"
     output:
-        reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/fastqc/{sample_id}_fastqc.zip',
-        html = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/fastqc/{sample_id}_fastqc.html'
+        reads = 'work/RNA_seq/alonso/fastqc/{sample_id}_fastqc.zip',
+        html = 'work/RNA_seq/alonso/fastqc/{sample_id}_fastqc.html'
     threads:
         40
     resources:
         mem_mb = 4000
     shell:
-        'fastqc {input.reads} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/fastqc/'
+        'fastqc {input.reads} -t {threads} -o work/RNA_seq/alonso/fastqc/'
 
 
 rule mutltiqc_alonso:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/fastqc/{sample_id}_fastqc.zip', sample_id = sample_ids_alonso)
+        reads = expand('work/RNA_seq/alonso/fastqc/{sample_id}_fastqc.zip', sample_id = sample_ids_alonso)
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/fastqc/multiqc_report.html'
+        report='work/RNA_seq/alonso/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/fastqc/
+        multiqc {input} -f -o work/RNA_seq/alonso/fastqc/
         """
 
 rule trimming_alonso:
     input:
-        untrimmed_reads = "/home/workspace/jogrady/ML4TB/data/alonso/{sample_id}.fastq.gz",
-        adapters = "/home/workspace/jogrady/ML4TB/data/adapters/Illumina_adpters.fa"
+        untrimmed_reads = "data/alonso/{sample_id}.fastq.gz",
+        adapters = "data/adapters/Illumina_adpters.fa"
     output:
-        trimmed_reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/{sample_id}_trimmed.fastq.gz'
+        trimmed_reads = 'work/RNA_seq/alonso/trimmed/{sample_id}_trimmed.fastq.gz'
     threads:
         50
     singularity:
@@ -991,53 +991,53 @@ rule trimming_alonso:
 
 rule fastqc_alonso_trimmed:
     input:
-        reads = lambda wildcards: f"/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"
+        reads = lambda wildcards: f"work/RNA_seq/alonso/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"
     output:
-        reads = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip',
-        html = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/fastqc/{sample_id}_trimmed_fastqc.html'
+        reads = 'work/RNA_seq/alonso/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip',
+        html = 'work/RNA_seq/alonso/trimmed/fastqc/{sample_id}_trimmed_fastqc.html'
     threads:
         40
     resources:
         mem_mb = 16000
     shell:
-        'fastqc {input.reads} -t {threads} -o /home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/fastqc/'
+        'fastqc {input.reads} -t {threads} -o work/RNA_seq/alonso/trimmed/fastqc/'
 
 rule mutltiqc_alonso_trimmed:
     input:
-        reads = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip', sample_id = sample_ids_alonso)
+        reads = expand('work/RNA_seq/alonso/trimmed/fastqc/{sample_id}_trimmed_fastqc.zip', sample_id = sample_ids_alonso)
     output:
-        report='/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/fastqc/multiqc_report.html'
+        report='work/RNA_seq/alonso/trimmed/fastqc/multiqc_report.html'
     shell:
         """
-        multiqc {input} -f -o /home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/fastqc/
+        multiqc {input} -f -o work/RNA_seq/alonso/trimmed/fastqc/
         """
     
 
 rule Alignment_alonso:
     input:
-        genome = "/home/workspace/jogrady/ML4TB/data/kirsten/star-genome/", # use the same
-        reads = lambda wildcards:[f"/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"]
+        genome = "data/kirsten/star-genome/", # use the same
+        reads = lambda wildcards:[f"work/RNA_seq/alonso/trimmed/{wildcards.sample_id}_trimmed.fastq.gz"]
     params:
         prefix = lambda wildcards: f'{wildcards.sample_id}'
     output:
-        aligned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
-        finallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Alignment/{sample_id}_Log.final.out',
-        interlog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Alignment/{sample_id}_Log.progress.out',
-        initiallog = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Alignment/{sample_id}_Log.out'
+        aligned = 'work/RNA_seq/alonso/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam',
+        finallog = 'work/RNA_seq/alonso/Alignment/{sample_id}_Log.final.out',
+        interlog = 'work/RNA_seq/alonso/Alignment/{sample_id}_Log.progress.out',
+        initiallog = 'work/RNA_seq/alonso/Alignment/{sample_id}_Log.out'
     threads: 40
     shell:
         '''
         STAR-2.7.1a  --genomeLoad LoadAndKeep --genomeDir {input.genome} --runThreadN {threads} \
         --readFilesIn {input.reads} --readFilesCommand gunzip -c \
-        --outFileNamePrefix /home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
+        --outFileNamePrefix work/RNA_seq/alonso/Alignment/{params.prefix}_ --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 10000000000
         '''
 
 rule featureCounts_alonso:
     input:
-        bam = expand('/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_alonso),
+        bam = expand('work/RNA_seq/alonso/Alignment/{sample_id}_Aligned.sortedByCoord.out.bam', sample_id  = sample_ids_alonso),
         annotation="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf"
     output:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/alonso/Quantification/gene_counts.txt'
     threads: 40
     shell:
         '''
@@ -1048,14 +1048,14 @@ rule featureCounts_alonso:
 
 rule cleanup_FC_alonso:
     input:
-        count_matrix = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Quantification/gene_counts.txt'
+        count_matrix = 'work/RNA_seq/alonso/Quantification/gene_counts.txt'
     output:
-        count_matrix_temp =  '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Quantification/gene_counts_temp.txt',
-        cleaned = '/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Quantification/alonso_count_matrix_clean.txt',
+        count_matrix_temp =  'work/RNA_seq/alonso/Quantification/gene_counts_temp.txt',
+        cleaned = 'work/RNA_seq/alonso/Quantification/alonso_count_matrix_clean.txt',
     shell:
         ''' 
         tail -n+2 {input.count_matrix} | cut -f 1,7-58  > {output.count_matrix_temp}
-        sed -i 's#/home/workspace/jogrady/ML4TB/work/RNA_seq/alonso/Alignment/##g' {output.count_matrix_temp}
+        sed -i 's#work/RNA_seq/alonso/Alignment/##g' {output.count_matrix_temp}
         sed -i 's/'"_Aligned\.sortedByCoord\.out\.bam"'//g' {output.count_matrix_temp} 
         cat {output.count_matrix_temp} > {output.cleaned} 
         '''
