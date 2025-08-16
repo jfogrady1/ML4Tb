@@ -5,3 +5,4 @@ bin/software/*
 .snakemake/*
 bin/.*
 work/*
+Zenodo/*

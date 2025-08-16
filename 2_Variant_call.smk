@@ -9,18 +9,15 @@ from pathlib import Path
 # Load sample metadata
 samples = pd.read_csv("./data/kirsten/kirsten_samples.csv", sep="\t")
 samples_wiarda = pd.read_csv("./data/wiarda/wiarda_samples.csv", sep="\t")
-samples_abdelaal = pd.read_csv("./data/abdelaal/abdelaal_samples.csv", sep="\t")
 samples_kirsten_pbl = pd.read_csv("./data/kirsten_pbl/kirsten_pbl_samples.csv", sep = "\t")
 
 # Define a dictionary for mapping run IDs to sample codes
 sample_mapping = dict(zip(samples["ena_run"], samples["sample_code"]))
 sample_mapping_wiarda = dict(zip(samples_wiarda["Sample_SRR"], samples_wiarda["Animal_Code"]))
-sample_mapping_abdelaal = dict(zip(samples_abdelaal["Sample_SRR"], samples_abdelaal["Run_Code"]))
 
 # Set the output directory path
 output_dir_kirsten = "/home/workspace/jogrady/ML4TB/data/kirsten/individual/"
 output_dir_wiarda = "/home/workspace/jogrady/ML4TB/data/wiarda/"
-output_dir_abdelaal = "/home/workspace/jogrady/ML4TB/data/abdelaal/individual/"
 output_dir_kirsten_pbl = "/home/workspace/jogrady/ML4TB/data/kirsten_pbl/"
 
 
@@ -58,36 +55,7 @@ lanes = ["001","002","003","004","005"]
 
 
 
-sample_ids_abdelaal = [
-    'Infected_1_20', 'Infected_1_8',
-    'Infected_2_20', 'Infected_2_8',
-    'Infected_3_20', 'Infected_3_8',
-    'Infected_4_20', 'Infected_4_8',
-    'Infected_5_20', 'Infected_5_8',
-    'Infected_6_20', 'Infected_6_8',
-    'Uninfected_1_20', 'Uninfected_1_8',
-    'Uninfected_2_20', 'Uninfected_2_8',
-    'Uninfected_3_20', 'Uninfected_3_8',
-    'Uninfected_4_20', 'Uninfected_4_8',
-    'Uninfected_5_20', 'Uninfected_5_8',
-    'Uninfected_6_20', 'Uninfected_6_8'
-]
 
-
-abdelaal_run_codes = [
-    "Infected_1_20_1", "Infected_1_20_2", "Infected_1_8_1", "Infected_1_8_2",
-    "Infected_2_20_1", "Infected_2_20_2", "Infected_2_8_1", "Infected_2_8_2",
-    "Infected_3_20_1", "Infected_3_20_2", "Infected_3_8_1", "Infected_3_8_2",
-    "Infected_4_20_1", "Infected_4_20_2", "Infected_4_8_1", "Infected_4_8_2",
-    "Infected_5_20_1", "Infected_5_20_2", "Infected_5_8_1", "Infected_5_8_2",
-    "Infected_6_20_1", "Infected_6_20_2", "Infected_6_8_1", "Infected_6_8_2",
-    "Uninfected_1_20_1", "Uninfected_1_20_2", "Uninfected_1_8_1", "Uninfected_1_8_2",
-    "Uninfected_2_20_1", "Uninfected_2_20_2", "Uninfected_2_8_1", "Uninfected_2_8_2",
-    "Uninfected_3_20_1", "Uninfected_3_20_2", "Uninfected_3_8_1", "Uninfected_3_8_2",
-    "Uninfected_4_20_1", "Uninfected_4_20_2", "Uninfected_4_8_1", "Uninfected_4_8_2",
-    "Uninfected_5_20_1", "Uninfected_5_20_2", "Uninfected_5_8_1", "Uninfected_5_8_2",
-    "Uninfected_6_20_1", "Uninfected_6_20_2", "Uninfected_6_8_1", "Uninfected_6_8_2"
-]
 
 
 
@@ -95,25 +63,20 @@ sample_ids_kirsten_pbl = ['A016_CON','A017_CON','A018_CON','A020_CON','A022_CON'
                           'A032_TB','A033_TB','A034_TB','A035_TB','A036_TB','A037_TB','A038_TB','A039_TB']
 
 
-unique_ids_abdelaal = sorted(set("_".join(s.split("_")[:-1]) for s in sample_ids_abdelaal))
 
 # Extract unique IDs to merge
 unique_kirsten_ids = set([s.split("_")[0] for s in Kirsten_sample_ids])
 unique_wiarda_ids = set([s.split("_")[0] for s in sample_ids_wiarda])
-unique_abdelaal_ids = set([s.split("_")[0] for s in sample_ids_abdelaal])
 print(unique_kirsten_ids)
 rule all:
     input:
         expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/merged/{s}.bam", s=unique_kirsten_ids),
         expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/merged/{s}.bam", s=unique_wiarda_ids),
-        expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/merged/{s}.bam", s = unique_ids_abdelaal),
         expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/variant_call/call/selected.{sample_wiarda}.filtered.vcf.gz", sample_wiarda = unique_wiarda_ids),
         expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/variant_call/call/selected.{sample}.filtered.vcf.gz", sample = unique_kirsten_ids),
         expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/variant_call/call/selected.{sample_kpbl}.filtered.vcf.gz", sample_kpbl = sample_ids_kirsten_pbl),
-        expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/call/selected.{sample_abdelaal}.filtered.vcf.gz", sample_abdelaal = unique_ids_abdelaal),
-        "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ALL_filtered.bed",
-        
-        expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/{study}_filtered.bed", study = ["kirsten", "kirsten_pbl", "wiarda"])
+        "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_filtered_ALL_Pruned.vcf.gz", # un comment when running
+        expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/{study}_filtered_PRUNED.vcf.gz", study = ["kirsten", "kirsten_pbl", "wiarda", "ogrady"])
         
 
 rule merge_bam:
@@ -139,20 +102,8 @@ rule merge_bam_wiarda:
         samtools merge {output.bam[0]} {input.reads} --threads {threads}
         samtools index {output.bam[0]}
         """
-
-rule merge_bam_abdelaal:
-    input:
-        reads = lambda wildcards: [f"/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/Alignment/{s}_Aligned.sortedByCoord.out.bam" for s in sample_ids_abdelaal if s.startswith(wildcards.s)]
-    output:
-        bam = multiext("/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/merged/{s}", ".bam", ".bam.bai")
-    threads: 30
-    shell:
-        """
-        samtools merge {output.bam[0]} {input.reads} --threads {threads}
-        samtools index {output.bam[0]}
-        """
-
         
+
 # Kirsten
 
 # 1. Add read groups, sort, mark duplicates, and create index
@@ -501,123 +452,7 @@ rule select_variants_kpbl:
         
         
 
-# abdelaal
 
-# 1. Add read groups, sort, mark duplicates, and create index
-rule task1_abdelaal:
-    input:
-        gatk = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/gatk-4.3.0.0/gatk",
-        picard = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/picard.jar",
-        in_bam="/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/merged/{sample_abdelaal}.bam"
-    output:
-        read_group = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/rg_added_{sample_abdelaal}-STARAligned.sortedByCoord.out.bam",
-        dedupped = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/dedupped_{sample_abdelaal}-STARAligned.sortedByCoord.out.bam",
-        duplicated_metrics = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/{sample_abdelaal}_marked_dup_metrix.txt"
-    threads: 30
-    params: TMPDIR = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/"
-    shell:
-        '''        
-        java -jar {input.picard} AddOrReplaceReadGroups I={input.in_bam} O={output.read_group} \
-        RGID=4 RGLB=lib1 RGPL=illumina RGPU=run RGSM=20 CREATE_INDEX=true VALIDATION_STRINGENCY=SILENT SORT_ORDER=coordinate
-        
-        {input.gatk} MarkDuplicates -I {output.read_group} -O {output.dedupped} \
-        -CREATE_INDEX true --VALIDATION_STRINGENCY SILENT -M {output.duplicated_metrics}
-        '''
-
-# 2. Split N trim and reassign mapping qualities
-rule task2_abdelaal:
-    input:
-        reference="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.dna.toplevel.fa",
-        gatk = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/gatk-4.3.0.0/gatk",
-        dedupped ="/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/dedupped_{sample_abdelaal}-STARAligned.sortedByCoord.out.bam"
-    output:
-        split = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/SplitNCigarReads_{sample_abdelaal}-STARAligned.sortedByCoord.out.bam"
-    params: TMPDIR = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/"
-    wildcard_constraints:
-        sample_abdelaal="(Infected|Uninfected)_[0-9]+"
-    threads: 30
-    shell:
-        '''
-        {input.gatk} SplitNCigarReads -R {input.reference} --tmp-dir {params.TMPDIR} -I {input.dedupped} -O {output.split}  
-        '''
-
-
-# 3. Base recalibration (BQSR)
-rule task3_abdelaal:
-    input:
-        reference ="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.dna.toplevel.fa",
-        gtf = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf",
-        dbSNP="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/TWAS/ARS1.2PlusY_BQSR.vcf",
-        gatk = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/gatk-4.3.0.0/gatk",
-        cigar = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/SplitNCigarReads_{sample_abdelaal}-STARAligned.sortedByCoord.out.bam"
-    output:
-        recalibration_table="/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/BQSR/{sample_abdelaal}-recal.table",
-        BQSR = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/BQSR/BQSR_{sample_abdelaal}-STARAligned.sortedByCoord.out.bam"
-    wildcard_constraints:
-        sample_abdelaal="(Infected|Uninfected)_[0-9]+"
-    shell:
-        '''
-
-        {input.gatk}  BaseRecalibrator -I {input.cigar} -R {input.reference} --known-sites {input.dbSNP} -O {output.recalibration_table}
-        {input.gatk}  ApplyBQSR -R {input.reference} -I {input.cigar} --bqsr-recal-file {output.recalibration_table} -O {output.BQSR}
-        '''
-
-
-# 4. Run the haplotypecaller
-rule task4_abdelaal:
-    input:
-        reference ="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.dna.toplevel.fa",
-        BQSR = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/BQSR/BQSR_{sample_abdelaal}-STARAligned.sortedByCoord.out.bam",
-        dbSNP="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/TWAS/ARS1.2PlusY_BQSR.vcf",
-        gatk = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/gatk-4.3.0.0/gatk",
-    
-    output:
-        vcf = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/call/{sample_abdelaal}.vcf.gz"
-    wildcard_constraints:
-        sample_abdelaal="(Infected|Uninfected)_[0-9]+"
-    shell:
-        '''
-        {input.gatk} HaplotypeCaller -R {input.reference} -I {input.BQSR} -O {output.vcf} -dbsnp {input.dbSNP} --dont-use-soft-clipped-bases --output-mode EMIT_ALL_CONFIDENT_SITES -stand-call-conf 0
-        '''
-
-rule filter_snps_abdelaal:
-    input:
-        reference ="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.dna.toplevel.fa",
-        vcf = rules.task4_abdelaal.output.vcf,
-        gatk = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/gatk-4.3.0.0/gatk",
-
-    output:
-        out_filter="/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/call/{sample_abdelaal}.filtered.vcf.gz"
-    wildcard_constraints:
-        sample_abdelaal = "(Infected|Uninfected)_[0-9]+"
-    shell:
-        " {input.gatk} " +
-        " VariantFiltration " +
-        " -R {input.reference} " +
-        " -V {input.vcf} " +
-        " -O {output.out_filter} " +
-        " --verbosity ERROR " +
-        " --filter \"QD < 2.0\" --filter-name \"snp_QD2\" "
-        " --filter \"FS > 30.0\" --filter-name \"snp_FS30\" " 
-        " --filter \"DP < 4.0\" --filter-name \"snp_DP4\" "
-
-
-
-
-# 6. Selected variants
-rule select_variants_abdelaal:
-    input:
-        reference ="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.dna.toplevel.fa",
-        in_filter="/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/call/{sample_abdelaal}.filtered.vcf.gz",
-        gatk = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/gatk-4.3.0.0/gatk"
-
-    output:
-        out_filter2="/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/call/selected.{sample_abdelaal}.filtered.vcf.gz",
-    
-    shell:
-        '''
-        {input.gatk} SelectVariants -R {input.reference} -V {input.in_filter} --select-type-to-include SNP --exclude-filtered -O {output.out_filter2}
-        '''
         
 
 ###########################
@@ -627,31 +462,6 @@ rule select_variants_abdelaal:
 ###########################
 
 
-#] Abdelaal
-rule rename_vcf_sample_abdelaal:
-    input:
-        vcf="/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/call/selected.{sample_abdelaal}.filtered.vcf.gz",
-    output:
-        renamed_vcf="/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/{sample_abdelaal}.filtered.renamed.vcf.gz"
-    params:
-        sample="{sample_abdelaal}"
-    shell:
-        "echo '{params.sample}' > {params.sample}.txt && "
-        "bcftools reheader -s {params.sample}.txt {input.vcf} -o {output.renamed_vcf} && tabix -p vcf {output.renamed_vcf} && "
-        "rm {params.sample}.txt"
-
-
-
-rule merge_vcfs_abdelaal:
-    input:
-        vcfs = expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/{sample_abdelaal}.filtered.renamed.vcf.gz", sample_abdelaal = unique_ids_abdelaal)
-
-    output:
-        merged_vcf = "/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/abdelaal_RNA_merged.vcf.gz"
-    shell:
-        """
-        bcftools merge {input.vcfs} -O z -o {output.merged_vcf} && tabix -p vcf {output.merged_vcf}
-        """
 
 
 # Kirsten
@@ -740,7 +550,6 @@ rule merge_vcfs_wiarda:
 
 rule intersect_vcfs:
     input:
-        #abdelaal="/home/workspace/jogrady/ML4TB/work/RNA_seq/abdelaal/variant_call/abdelaal_RNA_merged.vcf.gz",
         kirsten="/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/variant_call/kirsten_RNA_merged.vcf.gz",
         kirsten_pbl="/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/variant_call/kirsten_pbl_RNA_merged.vcf.gz",
         wiarda="/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/variant_call/wiarda_RNA_merged.vcf.gz",
@@ -783,7 +592,7 @@ rule filter_all:
         vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ALL_filtered.vcf.gz"
     shell:
         """
-        bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.05:minor -Oz | bcftools view -e 'F_MISSING > 0.1' -Oz -o {output.vcf_filtered}
+        bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.05:minor -Oz | bcftools view -e 'HWE < 0.000001 || F_MISSING > 0.2' -Oz -o {output.vcf_filtered}
         tabix -p vcf {output.vcf_filtered}
         """
 rule make_plink_all:
@@ -810,7 +619,7 @@ rule make_plink_all:
     shell:
         """
         plink --cow --keep-allele-order --vcf {input.vcf_filtered} --autosome --allow-extra-chr --make-bed --out {params.plink_prefix}
-        plink --cow --bfile {params.plink_prefix} --keep-allele-order --id-delim _ --indep-pairwise 1000 50 0.05 --out {params.plink_prefix}
+        plink --cow --bfile {params.plink_prefix} --keep-allele-order --id-delim _ --indep-pairwise 1000 5 0.1 --out {params.plink_prefix}
         plink --cow --bfile {params.plink_prefix} --keep-allele-order --id-delim _ --extract {params.plink_prefix}.prune.in --make-bed --out {params.plink_prefix}_PRUNED
         plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --id-delim _ --pca --out {params.plink_prefix}_PRUNED
         plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --id-delim _ --recode vcf bgz --out {params.plink_prefix}_PRUNED_ALL
@@ -839,7 +648,7 @@ rule filter_kirsten:
         vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_filtered.vcf.gz"
     shell:
         """
-        bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.1:minor -Oz | bcftools view -e 'HWE < 0.000001 || F_MISSING > 0.1 || N_MISSING > 0.1' -Oz -o {output.vcf_filtered}
+        bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.1:minor -Oz | bcftools view -e 'HWE < 0.000001' -Oz -o {output.vcf_filtered}
         tabix -p vcf {output.vcf_filtered}
         """
 
@@ -851,7 +660,7 @@ rule filter_kirsten_pbl:
         vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_pbl_filtered.vcf.gz"
     shell:
         """
-        bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.1:minor -Oz | bcftools view -e 'HWE < 0.000001 || F_MISSING > 0.1 || N_MISSING > 0.1' -Oz -o {output.vcf_filtered}
+        bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.1:minor -Oz | bcftools view -e 'HWE < 0.000001' -Oz -o {output.vcf_filtered}
         tabix -p vcf {output.vcf_filtered}
         """
 
@@ -863,24 +672,35 @@ rule filter_wiarda:
         vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/wiarda_filtered.vcf.gz"
     shell:
         """
-        bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.1:minor -Oz | bcftools view -e 'HWE < 0.000001 || F_MISSING > 0.1 || N_MISSING > 0.1' -Oz -o {output.vcf_filtered}
+        bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.1:minor -Oz | bcftools view -e 'HWE < 0.000001' -Oz -o {output.vcf_filtered}
         tabix -p vcf {output.vcf_filtered}
         """
 
-
+rule filter_ogrady:
+    input:
+        vcf="/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/0003.vcf.gz",
+    output:
+        vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_filtered.vcf.gz"
+    shell:
+        """
+        bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.05:minor -Oz | bcftools view -e 'HWE < 0.000001' -Oz -o {output.vcf_filtered}
+        tabix -p vcf {output.vcf_filtered}
+        """
+        
 rule make_plink_kirsten:
     input:
         vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_filtered.vcf.gz"    
     output:
-        plink = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_filtered.bed"
+        plink = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_filtered_PRUNED.vcf.gz"
 
     params:
         plink_prefix = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_filtered"
     shell:
         """
         plink --cow --keep-allele-order --vcf {input.vcf_filtered} --autosome --allow-extra-chr --make-bed --out {params.plink_prefix}
-        plink --cow --bfile {params.plink_prefix} --keep-allele-order --indep-pairwise 1000 5 0.2 --out {params.plink_prefix}
+        plink --cow --bfile {params.plink_prefix} --keep-allele-order --indep-pairwise 1000 5 0.1 --out {params.plink_prefix}
         plink --cow --bfile {params.plink_prefix} --keep-allele-order --extract {params.plink_prefix}.prune.in --make-bed --out {params.plink_prefix}_PRUNED
+        plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --recode vcf bgz --out {params.plink_prefix}_PRUNED && tabix -p vcf {params.plink_prefix}_PRUNED.vcf.gz
         plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --pca --out {params.plink_prefix}_PRUNED 
         """
         
@@ -888,30 +708,50 @@ rule make_plink_kirsten_pbl:
     input:
         vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_pbl_filtered.vcf.gz"    
     output:
-        plink = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_pbl_filtered.bed"
+        plink = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_pbl_filtered_PRUNED.vcf.gz"
 
     params:
         plink_prefix = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_pbl_filtered"
     shell:
         """
         plink --cow --keep-allele-order --vcf {input.vcf_filtered} --autosome --allow-extra-chr --make-bed --out {params.plink_prefix}
-        plink --cow --bfile {params.plink_prefix} --keep-allele-order --indep-pairwise 1000 5 0.2 --out {params.plink_prefix}
+        plink --cow --bfile {params.plink_prefix} --keep-allele-order --indep-pairwise 1000 5 0.1 --out {params.plink_prefix}
         plink --cow --bfile {params.plink_prefix} --keep-allele-order --extract {params.plink_prefix}.prune.in --make-bed --out {params.plink_prefix}_PRUNED
+        plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --recode vcf bgz --out {params.plink_prefix}_PRUNED && tabix -p vcf {params.plink_prefix}_PRUNED.vcf.gz
         plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --pca --out {params.plink_prefix}_PRUNED 
         """
         
+
+rule make_plink_ogrady:
+    input:
+        vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_filtered.vcf.gz"    
+    output:
+        plink = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_filtered_PRUNED.vcf.gz"
+
+    params:
+        plink_prefix = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_filtered"
+    shell:
+        """
+        plink --cow --keep-allele-order --vcf {input.vcf_filtered} --autosome --allow-extra-chr --make-bed --out {params.plink_prefix}
+        plink --cow --bfile {params.plink_prefix} --keep-allele-order --indep-pairwise 1000 5 0.1 --out {params.plink_prefix}
+        plink --cow --bfile {params.plink_prefix} --keep-allele-order --extract {params.plink_prefix}.prune.in --make-bed --out {params.plink_prefix}_PRUNED
+        plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --recode vcf bgz --out {params.plink_prefix}_PRUNED && tabix -p vcf {params.plink_prefix}_PRUNED.vcf.gz
+        plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --pca --out {params.plink_prefix}_PRUNED 
+        """
+
 
 rule make_plink_wiarda:
     input:
         vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/wiarda_filtered.vcf.gz"    
     output:
-        plink = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/wiarda_filtered.bed"
+        plink = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/wiarda_filtered_PRUNED.vcf.gz"
     params:
         plink_prefix = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/wiarda_filtered"
     shell:
         """
         plink --cow --keep-allele-order --vcf {input.vcf_filtered} --autosome --allow-extra-chr --make-bed --out {params.plink_prefix}
-        plink --cow --bfile {params.plink_prefix} --keep-allele-order --indep-pairwise 1000 5 0.2 --out {params.plink_prefix}
+        plink --cow --bfile {params.plink_prefix} --keep-allele-order --indep-pairwise 1000 5 0.1 --out {params.plink_prefix}
         plink --cow --bfile {params.plink_prefix} --keep-allele-order --extract {params.plink_prefix}.prune.in --make-bed --out {params.plink_prefix}_PRUNED
+        plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --recode vcf bgz --out {params.plink_prefix}_PRUNED && tabix -p vcf {params.plink_prefix}_PRUNED.vcf.gz
         plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --pca --out {params.plink_prefix}_PRUNED 
         """
