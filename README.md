@@ -9,7 +9,7 @@ The zoonotic bacterium, Mycobacterium bovis, causes bovine tuberculosis (bTB) an
 
 ## Overview of Study
 
-<img src="https://www.dropbox.com/scl/fi/xys1ftxh5h3isoca0652i/Figure_01.png?rlkey=h6so0bey20bgtbyc3atkpo9s8&st=8e25rxl5&dl=0">
+<img src="https://www.dropbox.com/scl/fi/xys1ftxh5h3isoca0652i/Figure_01.png?rlkey=h6so0bey20bgtbyc3atkpo9s8&st=8e25rxl5&dl=0.png" alt ="Overview">
 
 ---
 
