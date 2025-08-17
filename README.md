@@ -15,4 +15,17 @@ The zoonotic bacterium, _Mycobacterium bovis_, causes bovine tuberculosis (bTB) 
 
 ## Data availability
 
+| Citation | Abbreviation | Disease | Accession Number | 
+| ----- | ----- | ----- | ----- | 
+| O'Grady et al. (2025) | OGR25-BTB | *M. bovis* (bTB+) | GSE255724 | 
+| McLoughlin et al. (2014) | MCL14-BTB | *M. bovis* (bTB+) | PRJNA257841 | 
+| McLoughlin et al. (2021) | MCL21-BTB | *M. bovis* (bTB+) | PRJEB27764<br>PRJEB44470 | 
+| Wiarda et al. (2020) | WIA20-BTB | *M. bovis* (bTB+) | PRJNA600004 | 
+| Alonso-Hearn et al. (2019) | ALO19-MAP | *M. avium ssp. paratuberculosis* | PRJNA565369 | 
+| Johnston et al. (2021) | JOH21-BRD | BRSV | GSE152959 | 
+| O'Donoghue et al. (2023) | ODO23-BRD | BoHV-1 | GSE199108 | 
+
+
+
+
 These raw and pre-processed RNA-seq datasets used in this study are available under the following accession numbers: 1) OGRA25-BTB (GSE255724) (O'Grady et al. 2025); 2) MCL14-BTB (PRJNA257841) (McLoughlin et al. 2014); 3) MCL21-BTB (PRJEB27764 (bTB−) and PRJEB44470 (bTB+)) (McLoughlin et al. 2021); 4) WIA20-BTB (PRJNA600004) (Wiarda et al. 2020); 5) ALO19-MAP (PRJNA565369) (Alonso-Hearn et al. 2019); 6) JOH21-BRD (GSE152959) (Johnston et al. 2021); and 7) ODO23-BRD (GSE199108) (O'Donoghue et al. 2023). Imputed and filtered WGS data from O'Grady et al. (2025) is available at Zenodo ((https://zenodo.org/records/13752056). Raw genotype information derived from the RNA-seq variant call for bTB studies described here is available at Zenodo (https://doi.org/10.5281/zenodo.16887104). 
