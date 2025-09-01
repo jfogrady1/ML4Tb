@@ -75,7 +75,7 @@ rule all:
         expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/variant_call/call/selected.{sample_wiarda}.filtered.vcf.gz", sample_wiarda = unique_wiarda_ids),
         expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/variant_call/call/selected.{sample}.filtered.vcf.gz", sample = unique_kirsten_ids),
         expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/variant_call/call/selected.{sample_kpbl}.filtered.vcf.gz", sample_kpbl = sample_ids_kirsten_pbl),
-        "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_filtered_ALL_Pruned.vcf.gz", # un comment when running
+        "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_filtered_ALL.vcf.gz", # un comment when running
         expand("/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/{study}_filtered_PRUNED.vcf.gz", study = ["kirsten", "kirsten_pbl", "wiarda", "ogrady"])
         
 
@@ -595,20 +595,20 @@ rule filter_all:
         bcftools +fill-tags {input.vcf} -Oz | bcftools view -q 0.05:minor -Oz | bcftools view -e 'HWE < 0.000001 || F_MISSING > 0.2' -Oz -o {output.vcf_filtered}
         tabix -p vcf {output.vcf_filtered}
         """
+
 rule make_plink_all:
     input:
         vcf_filtered = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ALL_filtered.vcf.gz"    
     output:
-        plink = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ALL_filtered.bed",
-        wiarda = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/wiarda_filtered_ALL_Pruned.vcf.gz",
-        kirsten = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_filtered_ALL_Pruned.vcf.gz",
-        kirsten_pbl = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_pbl_filtered_ALL_Pruned.vcf.gz",
-        ogrady = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_filtered_ALL_Pruned.vcf.gz",
+        wiarda = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/wiarda_filtered_ALL.vcf.gz",
+        kirsten = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_filtered_ALL.vcf.gz",
+        kirsten_pbl = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_pbl_filtered_ALL.vcf.gz",
+        ogrady = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_filtered_ALL.vcf.gz",
 
     params:
         plink_prefix = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ALL_filtered",
-        wiarda_samples = ",".join(f"{id}_{id}" for id in unique_wiarda_ids),
-        kirsten_samples = ",".join(f"{id}_{id}" for id in unique_kirsten_ids),
+        wiarda_samples = ",".join(f"{id}" for id in unique_wiarda_ids),
+        kirsten_samples = ",".join(f"{id}" for id in unique_kirsten_ids),
         kirsten_pbL_samples = ",".join(sample_ids_kirsten_pbl),
         # PCA
         wiarda_pca = "/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/wiarda_filtered_ALL_Pruned",
@@ -618,25 +618,11 @@ rule make_plink_all:
 
     shell:
         """
-        plink --cow --keep-allele-order --vcf {input.vcf_filtered} --autosome --allow-extra-chr --make-bed --out {params.plink_prefix}
-        plink --cow --bfile {params.plink_prefix} --keep-allele-order --id-delim _ --indep-pairwise 1000 5 0.1 --out {params.plink_prefix}
-        plink --cow --bfile {params.plink_prefix} --keep-allele-order --id-delim _ --extract {params.plink_prefix}.prune.in --make-bed --out {params.plink_prefix}_PRUNED
-        plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --id-delim _ --pca --out {params.plink_prefix}_PRUNED
-        plink --cow --bfile {params.plink_prefix}_PRUNED --keep-allele-order --id-delim _ --recode vcf bgz --out {params.plink_prefix}_PRUNED_ALL
-
-        tabix -f -p vcf {params.plink_prefix}_PRUNED_ALL.vcf.gz
-
-        bcftools view -s {params.wiarda_samples} {params.plink_prefix}_PRUNED_ALL.vcf.gz -Oz -o  {output.wiarda} && tabix -p vcf {output.wiarda}
-        bcftools view -s {params.kirsten_samples} {params.plink_prefix}_PRUNED_ALL.vcf.gz -Oz -o  {output.kirsten} && tabix -p vcf {output.kirsten}
-        bcftools view -s {params.kirsten_pbL_samples} {params.plink_prefix}_PRUNED_ALL.vcf.gz -Oz -o  {output.kirsten_pbl} && tabix -p vcf {output.kirsten_pbl}
+        bcftools view -s {params.wiarda_samples} {input.vcf_filtered} -Oz -o  {output.wiarda} && tabix -p vcf {output.wiarda}
+        bcftools view -s {params.kirsten_samples} {input.vcf_filtered} -Oz -o  {output.kirsten} && tabix -p vcf {output.kirsten}
+        bcftools view -s {params.kirsten_pbL_samples} {input.vcf_filtered} -Oz -o  {output.kirsten_pbl} && tabix -p vcf {output.kirsten_pbl}
         # ogrady
-        bcftools view -s ^{params.kirsten_pbL_samples},{params.kirsten_samples},{params.wiarda_samples} {params.plink_prefix}_PRUNED_ALL.vcf.gz -Oz -o  {output.ogrady} && tabix -p vcf {output.ogrady}
-
-        # Now do the pca on each data set
-        plink --cow --keep-allele-order --vcf {output.wiarda} --autosome --allow-extra-chr --pca --out {params.wiarda_pca}
-        plink --cow --keep-allele-order --vcf {output.kirsten} --autosome --allow-extra-chr --pca --out {params.kirsten_pca}
-        plink --cow --keep-allele-order --vcf {output.kirsten_pbl} --autosome --allow-extra-chr --pca --out {params.kirsten_pbl_pca}
-        plink --cow --keep-allele-order --vcf {output.ogrady} --autosome --allow-extra-chr --pca --out {params.ogrady_pca}
+        bcftools view -s ^{params.kirsten_pbL_samples},{params.kirsten_samples},{params.wiarda_samples} {input.vcf_filtered} -Oz -o  {output.ogrady} && tabix -p vcf {output.ogrady}
         """
 
 
