@@ -27,10 +27,13 @@ library(matrixStats)
 library(ggpubr)
 library(gprofiler2)
 library(viridis)
-source("~/ML4TB/bin/Merged_analysis/Funcitons.R")
+args = commandArgs(trailingOnly=TRUE)
+source(args[1])
 set.seed(42) # For reproducibility
+library(scico)
 
 
+set_base_url("https://biit.cs.ut.ee/gprofiler_archive3/e112_eg59_p19")
 
 ####################################################
 ####################################################
@@ -43,11 +46,11 @@ set.seed(42) # For reproducibility
 ####################################################
 
 # raw counts from featurecounts
-data_raw <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/RAW/count_matrix_clean.txt")
+data_raw <- fread(args[2])
 
 tested_genes <- data_raw %>% select(Geneid) %>% as.vector()
 
-ensemble <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf")
+ensemble <- fread(args[3])
 ensemble <- ensemble %>% filter(V3 == "gene")
 head(ensemble)
 ensemble <- ensemble %>% separate(., V9, into = c("gene_id", "gene_version", "gene_name"), sep = ";")
@@ -77,7 +80,7 @@ data_raw <- data_raw[,-1]
 data_raw <- as.matrix(data_raw)
 rownames(data_raw) <- ensemble$gene_name
 # Labels and wrangling
-labels <- read.table("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/covariate_RNA_seq.txt")
+labels <- read.table(args[4])
 colnames(labels) <- labels[1,]
 labels
 labels <- labels[-1,]
@@ -91,14 +94,14 @@ labels$Location <- "EU"
 labels$Tissue <- "PB"
 labels$Animal_Code <- labels$Sample
 
-ogrady_cov <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/covariate_RNA_seq.txt") %>% select(Sample, Batch)
+ogrady_cov <- fread(args[4]) %>% select(Sample, Batch)
 labels <- left_join(labels, ogrady_cov)
 labels$Batch
 labels$Age
 # Read in PCA data
 
 # Ogrady
-ogrady_eigen_vec = fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/ogrady_SNPRELATE_eigenvec.txt") %>% select(Sample,PC1,PC2)
+ogrady_eigen_vec = fread(args[5]) %>% select(Sample,PC1,PC2)
 ogrady_eigen_vec
 
 
@@ -123,9 +126,9 @@ ddsMat_ogrady <- DESeqDataSetFromMatrix(countData = data_raw,
 
 
 # WIARDA
-wiarda = fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt", sep = "\t") %>% select(-1)
+wiarda = fread(args[6], sep = "\t") %>% select(-1)
 wiarda <- as.matrix(wiarda)
-wiarda_labels = fread("/home/workspace/jogrady/ML4TB/data/wiarda/wiarda_samples.csv", sep = "\t")
+wiarda_labels = fread(args[7], sep = "\t")
 rownames(wiarda_labels) <- wiarda_labels$Animal_Code
 rownames(wiarda) <- ensemble$gene_name
 wiarda
@@ -148,7 +151,7 @@ wiarda_labels$Time = gsub("^\\d{3}_.+?_W", "", wiarda_labels$Sample)
 wiarda_labels[1:5,2] = "Infected"
 wiarda_labels[11:13, 2] = "Infected"
 
-wiarda_eigen_vec = read.table("/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/wiarda_SNPRELATE_eigenvec.txt") %>% select(Sample,PC1,PC2)
+wiarda_eigen_vec = read.table(args[8]) %>% select(Sample,PC1,PC2)
 wiarda_eigen_vec
 colnames(wiarda_eigen_vec) <- c("Sample", "PC1", "PC2")
 wiarda_labels$Animal_Code <- as.numeric(wiarda_labels$Animal_Code)
@@ -170,10 +173,10 @@ dds_wiarda = DESeqDataSetFromMatrix(countData = wiarda,
 wiarda_labels
 wiarda_labels$Group
 # Kirsten data
-Kirsten <- fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt", sep = "\t") %>% select(-1)
+Kirsten <- fread(args[9], sep = "\t") %>% select(-1)
 Kirsten <- as.matrix(Kirsten)
 rownames(Kirsten) <- ensemble$gene_name
-kirsten_labels <- fread("/home/workspace/jogrady/ML4TB/data/kirsten/kirsten_covariate.txt") %>% as.data.frame() #%>% select(1,2)
+kirsten_labels <- fread(args[10]) %>% as.data.frame() #%>% select(1,2)
 kirsten_labels <- kirsten_labels %>% select(-c(Week))
 kirsten_labels$Animal_Code <- gsub("_W.*", "", kirsten_labels$Sample)
 rownames(labels) <- labels$Sample
@@ -186,7 +189,7 @@ kirsten_labels$Study <- "Mcloughlin"
 rownames(kirsten_labels) <- kirsten_labels$Sample
 
 # Ogrady
-kirsten_eigen_vec = fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_SNPRELATE_eigenvec.txt") %>% select(Sample,PC1,PC2)
+kirsten_eigen_vec = fread(args[11]) %>% select(Sample,PC1,PC2)
 colnames(kirsten_eigen_vec) <- c("Sample", "PC1", "PC2")
 kirsten_eigen_vec
 kirsten_labels <- left_join(kirsten_labels, kirsten_eigen_vec, by = c("Animal_Code" = "Sample"))
@@ -200,10 +203,10 @@ dds_kirsten = DESeqDataSetFromMatrix(countData = Kirsten,
 
 
 # Kirsten PBL data
-Kirsten_pbl <- fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/kirsten_pbl_count_matrix_clean.txt", sep = "\t") %>% select(-1)
+Kirsten_pbl <- fread(args[12], sep = "\t") %>% select(-1)
 Kirsten_pbl <- as.matrix(Kirsten_pbl)
 rownames(Kirsten_pbl) <- ensemble$gene_name
-kirsten_pbl_labels <- fread("/home/workspace/jogrady/ML4TB/data/kirsten_pbl/kirsten_pbl_samples.csv") %>% as.data.frame()
+kirsten_pbl_labels <- fread(args[13]) %>% as.data.frame()
 rownames(kirsten_pbl_labels) <- kirsten_pbl_labels$Run_Code
 kirsten_pbl_labels <- kirsten_pbl_labels %>% select(2,3)
 colnames(kirsten_pbl_labels) <- c("Sample", "Condition")
@@ -217,7 +220,7 @@ kirsten_pbl_labels$Animal_Code <- kirsten_pbl_labels$Sample
 kirsten_pbl_labels$Animal_Code <- gsub("_.*", "", kirsten_pbl_labels$Animal_Code)
 rownames(kirsten_pbl_labels)
 
-kirsten_pbl_eigen_vec = fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/vcf_isec2/kirsten_pbl_SNPRELATE_eigenvec.txt") %>% select(Sample,PC1,PC2)
+kirsten_pbl_eigen_vec = fread(args[14]) %>% select(Sample,PC1,PC2)
 colnames(kirsten_pbl_eigen_vec) <- c("Sample", "PC1", "PC2")
 kirsten_pbl_eigen_vec
 head(kirsten_pbl_labels)
@@ -354,7 +357,7 @@ listInput <- list(OGrady_2025 = ogrady_genes,
                   McLoughlin_2014 = kirsten_pbl_genes,
                   Wiarda_2020 = wiarda_genes)
 
-pdf("/home/workspace/jogrady/ML4TB/work/RNA_seq/DE_analysis/Upset_plot.pdf", width = 20, height = 15)
+pdf(args[15], width = 20, height = 15)
 upset(fromList(listInput), order.by = "freq", nintersects = 25, nsets = 10, sets = names(listInput), query.legend = "top",
       point.size = 4, line.size = 2,  text.scale = c(4, 2.5, 1, 1, 2, 2.5), 
       keep.order = TRUE,sets.x.label = "DE genes", 
@@ -426,14 +429,14 @@ significance_matrix
 annotation_matrix <- ifelse(significance_matrix, "*", "")
 
 length((lfc_matrix))
-myColor <- colorRampPalette(c("#2166ac", "white", "#b2182b"))(369)
+myColor <- colorRampPalette(c("#2166ac", "white", "#b2182b"))(length(lfc_matrix))
 myBreaks <- c(seq(min(lfc_matrix), 0, length.out=ceiling(length((lfc_matrix))/2) + 1), 
               seq(max(lfc_matrix)/length((lfc_matrix)), max(lfc_matrix), length.out=floor(length((lfc_matrix))/2)))
 myBreaks
 library(pheatmap)
 
 # Plot heatmap with significance annotation
-pdf("/home/workspace/jogrady/ML4TB/work/RNA_seq/DE_analysis/Heatmap_DE_genes.pdf", width = 20, height =15)
+pdf(args[16], width = 20, height =15)
 pheatmap(lfc_matrix, 
          cluster_rows = F, cluster_cols = F,  # Hierarchical clustering
          display_numbers = annotation_matrix,  # Show * for significant values
@@ -538,7 +541,7 @@ ggplot(results_ogrady_gprofiler, aes(x = source, y = as.numeric(p_value_log10), 
         legend.title = element_text(size = 15, colour = "black", face = "bold"),
         legend.position = "none")
 
-ggsave("/home/workspace/jogrady/ML4TB/work/RNA_seq/DE_analysis/ogrady_gprofiler.pdf", width = 10, height = 10)
+ggsave(args[17], width = 10, height = 10)
 
 input_mcloughlin_pbl_up = res_kirsten_pbl_df %>% arrange(padj) %>% filter(padj < 0.01) %>%  as.data.frame() %>% filter(log2FoldChange > 0) %>% rownames()
 input_mcloughlin_pbl_down = res_kirsten_pbl_df %>% arrange(padj) %>% filter(padj < 0.01) %>% as.data.frame() %>% filter(log2FoldChange < 0) %>% rownames()
@@ -583,7 +586,7 @@ ggplot(results_mcloughlin_gprofiler, aes(x = source, y = as.numeric(p_value_log1
         legend.title = element_text(size = 15, colour = "black", face = "bold"),
         legend.position = "none")
 
-ggsave("/home/workspace/jogrady/ML4TB/work/RNA_seq/DE_analysis/mcloughlin_pbl_gprofiler.pdf", width = 10, height = 10)
+ggsave(args[18], width = 10, height = 10)
 
 # Mcloughlin et al., 2021
 
@@ -598,6 +601,7 @@ res_kirsten_all <- rbind(res_kirsten_1_V_0_df,res_kirsten_2_V_0_df,res_kirsten_6
 
 res_kirsten_all <- res_kirsten_all %>% filter(padj < 0.05) 
 
+number_kirsten_unique <- length(unique(res_kirsten_all$Symbol))
 
 res_kirsten_input <- res_kirsten_all %>%  group_by(Symbol) %>% arrange(padj) %>% reframe(LFC = log2FoldChange,
                                                                                                                                             FDR = padj,
@@ -686,7 +690,7 @@ ggplot(results_kirsten_gprofiler, aes(x = source, y = p_value_log10, col = sourc
         legend.title = element_text(size = 15, colour = "black", face = "bold"),
         legend.position = "none")
 
-ggsave("/home/workspace/jogrady/ML4TB/work/RNA_seq/DE_analysis/mcloughlin_gprofiler.pdf", width = 10, height = 10)
+ggsave(args[19], width = 10, height = 10)
 
 
 # Wiarda
@@ -696,11 +700,10 @@ res_wiarda_4_V_0_df$Symbol = rownames(res_wiarda_4_V_0_df)
 res_wiarda_10_V_0_df$Symbol = rownames(res_wiarda_10_V_0_df)
 res_wiarda_4_V_0_df$Group = "4_V_0"
 res_wiarda_10_V_0_df$Group = "10_V_0"
-
 res_wiarda_all <- rbind(res_wiarda_4_V_0_df,res_wiarda_10_V_0_df)
 
 res_wiarda_all <- res_wiarda_all %>% filter(padj < 0.05) 
-
+number_wiarda_unique = length(unique(res_wiarda_all$Symbol))
 res_wiarda_all %>% filter(Group == "10_V_0") %>% filter(log2FoldChange > 0) %>% dim()
 
 res_wiarda_input <- res_wiarda_all %>% arrange(padj) %>% group_by(Symbol) %>% arrange(padj) %>% reframe(LFC = log2FoldChange,
@@ -735,7 +738,7 @@ results_wiarda_up$result <- results_wiarda_up$result %>% mutate(Group = "DE up")
 
 negative_rows_wiarda
 
-ograd
+
 # wiarda
 
 
@@ -780,7 +783,7 @@ ggplot(results_wiarda_gprofiler, aes(x = source, y = p_value_log10, col = source
         legend.text = element_text(size = 15),
         legend.title = element_text(size = 15, colour = "black", face = "bold"),
         legend.position = "none")
-ggsave("/home/workspace/jogrady/ML4TB/work/RNA_seq/DE_analysis/wiarda_gprofiler.pdf", width = 10, height = 10)
+ggsave(args[20], width = 10, height = 10)
 dev.off()
 colnames(results_wiarda_gprofiler)
 colnames(results_ogrady_gprofiler)
@@ -789,7 +792,7 @@ colnames(results_mcloughlin_gprofiler)
 
 gprofiler_all = rbind(results_ogrady_gprofiler, results_mcloughlin_gprofiler, results_kirsten_gprofiler,results_wiarda_gprofiler)
 gprofiler_all <- apply(gprofiler_all,2,as.character)
-write.table(as.data.frame(gprofiler_all), "/home/workspace/jogrady/ML4TB/work/RNA_seq/DE_analysis/gprofiler_results.txt", sep = "\t", quote = F, row.names = FALSE)
+write.table(as.data.frame(gprofiler_all), args[21], sep = "\t", quote = F, row.names = FALSE)
 head(res_ogrady_df %>% mutate(Study = "O'Grady et al., 2025"))
 
 
@@ -798,4 +801,28 @@ res_kirsten_pbl_df <- res_kirsten_pbl_df %>% mutate(Symbol = rownames(.), Group 
 de_all <- rbind(res_ogrady_df %>% mutate(Study = "O'Grady et al., (2025)"), res_kirsten_pbl_df %>% mutate(Study = "McLoughlin et al., (2014)"), res_wiarda_all %>% mutate(Study = "Wiarda et al., (2020)"), res_kirsten_all %>% mutate(Study = "McLoughlin et al., (2021)"))
 
 head(de_all)
-write.table(as.data.frame(de_all), "/home/workspace/jogrady/ML4TB/work/RNA_seq/DE_analysis/all_de_results.txt", sep = "\t", quote = F, row.names = FALSE)
+write.table(as.data.frame(de_all), args[22], sep = "\t", quote = F, row.names = FALSE)
+write.table(as.data.frame(lfc_matrix), args[23], sep = "\t", quote = F, row.names = TRUE)
+print(length(expressed_genes))
+length(ogrady_genes)
+length(kirsten_genes)
+length(wiarda_genes)
+length(kirsten_pbl_genes)
+
+
+print("SUMMARY DATA")
+length(input_ogrady_up)
+length(input_ogrady_down)
+
+length(input_mcloughlin_pbl_up)
+length(input_mcloughlin_pbl_down)
+
+dim(negative_rows_kirsten)
+dim(positive_rows_kirsten)
+
+dim(negative_rows_wiarda)
+dim(positive_rows_wiarda)
+
+
+number_wiarda_unique 
+number_kirsten_unique

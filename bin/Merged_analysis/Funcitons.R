@@ -198,8 +198,8 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
   # Format input metadata to obtain a study specific batch
   metadata$study = metadata$Study
   metadata$Condition = factor(metadata$Condition, levels = c(0, 1), labels = c("Control", "Infected"))
-  metadata$study = if_else(metadata$study == "1_OGrady", "OGrady", metadata$study)
-  metadata$study = if_else(metadata$study == "2_OGrady", "OGrady", metadata$study)
+  metadata$study = if_else(metadata$Study == "1_OGrady", "OGrady", metadata$study)
+  metadata$study = if_else(metadata$Study == "2_OGrady", "OGrady", metadata$study)
   metadata$Fold = factor(metadata$Folds, labels = c("Fold1", "Fold2", "Fold3", "Fold4", "Fold5"), levels = c(1,2,3,4,5))
 
   
@@ -209,14 +209,11 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
   Mcloughlin_n = as.numeric(sum(metadata$study == "Mcloughlin"))
   Mcloughlin_pbl_n = as.numeric(sum(metadata$study == "Mcloughlin_pbl"))
   
-  View(metadata)
   de_results$variable = rownames(de_results)
   starts = gene.list
   # Obtain a dataframe to collect results
-  starts_df = data.frame(gene=character(), Fold1=numeric(), Fold2=numeric(), Fold2=numeric(), Fold3=numeric(), Fold4=numeric(), Fold5 = numeric(), Average=numeric(), stringsAsFactors=FALSE)
-  
+  starts_df = data.frame(gene=character(), Fold1=numeric(), Fold2=numeric(), Fold3=numeric(), Fold4=numeric(), Fold5 = numeric(), Average=numeric(), stringsAsFactors=FALSE)
   for (s in starts){
-    
     # For all genes, select the gene and derive the score
     df <- cpm_matrix[rownames(cpm_matrix) == s, ] %>%
       as.data.frame()  %>%
@@ -225,7 +222,6 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
       as.data.frame()
   
     colnames(df)[2] <- "Score"
-    
     # Calculate AUC for each of the first gene
     # Note, geometric mean is not calculated as only one gene considered
     auc = df %>% group_by(Fold) %>% summarize(AUC = as.numeric(pROC::auc(pROC::roc(Condition, as.numeric(as.vector(unlist(Score))),direction = "<"))), .groups = "drop") %>% pivot_wider(names_from = "Fold", values_from = "AUC")
@@ -241,31 +237,30 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
   colnames(starts_df)[7] <- "Average"
   
   # Set up a new dataframe for plotting
-  plot_df = matrix(ncol=7, NA)
+  plot_df = data.frame(matrix(ncol=7, nrow = 0))
   colnames(plot_df)=c("combination","Fold1", "Fold2", "Fold3", "Fold4", "Fold5", "Average")
   
   # Select best gene from ordered starts_df
-  plot_df = rbind(plot_df, cbind("combination"=starts_df[1,1], "Fold1"=starts_df[1,2], "Fold2"=starts_df[1,3], "Fold3"=starts_df[1,4], "Fold4"=starts_df[1,5], "Fold5"=starts_df[1,6], "Average" = starts_df[1,7]))
+  plot_df = rbind(cbind("combination"=starts_df[1,1], "Fold1"=starts_df[1,2], "Fold2"=starts_df[1,3], "Fold3"=starts_df[1,4], "Fold4"=starts_df[1,5], "Fold5"=starts_df[1,6], "Average" = starts_df[1,7]))
   
   # Get the top AUC
   best_auc = plot_df %>% as.data.frame() %>% filter(row_number()==n())
   best_auc = best_auc$Average
   
   # Set up second dataframe for other genes
-  df2 = matrix(ncol=7,NA)
+  df2 = data.frame(matrix(ncol=7, nrow = 0))
   colnames(df2)=c("combination","Fold1", "Fold2", "Fold3", "Fold4", "Fold5", "Average")
-  start = plot_df[2,1] # first gene - note NA is on first column
+  start = plot_df[1,1] # first gene - note NA is on first column
   # Isolate other genes
   rest = starts[!(starts %in% start)]
   for (r in 1:length(rest)){
     
     # Generate combination
     comb = c(start,rest[r])
+    pos = de_results[de_results$Direction == "Positive",] %>% filter(Symbol %in% comb) %>% pull(Symbol)
+    neg = de_results[de_results$Direction == "Negative",] %>% filter(Symbol %in% comb) %>% pull(Symbol)
     print(comb)
-    pos = de_results[de_results$Direction == "Positive",] %>% filter(variable %in% comb) %>% pull(variable)
-    neg = de_results[de_results$Direction == "Negative",] %>% filter(variable %in% comb)%>% pull(variable)
-    
-
+    print(start)
     if (length(pos)==1){
       pos_counts =cpm_matrix[rownames(cpm_matrix) %in% pos,]  %>% as.data.frame() %>% set_colnames("pos_Score")
       
@@ -281,12 +276,12 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
     } else if (length(neg)>1) {
       neg_counts =cpm_matrix[rownames(cpm_matrix) %in% neg,] %>%
         as.data.frame() %>% mutate_all(as.numeric) %>% summarise_all(mean) %>% t() %>% set_colnames("neg_Score")
+      View(neg_counts)
     } else {
       neg_counts = NA
     }
     
-
-    if (any(!is.na(neg_counts)) && any(!is.na(pos_counts))) {
+    if (any(!is.na(neg_counts)) & any(!is.na(pos_counts))) {
       df_test = merge(pos_counts,neg_counts, by="row.names")
       df_test = merge(df_test, metadata, by.x="Row.names", by.y="Sample")
       df_test$Score = df_test$pos_Score - df_test$neg_Score
@@ -296,7 +291,7 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
       auc = df_test %>% group_by(Fold) %>% summarize(AUC = as.numeric(pROC::auc(pROC::roc(Condition, as.numeric(Score),direction = "<"))), .groups = "drop") %>% pivot_wider(names_from = "Fold", values_from = "AUC")
       colnames(auc) <- c("Fold1", "Fold2", "Fold3", "Fold4", "Fold5")
       auc$Average <- rowMeans(auc)
-      print("HERE1")
+      #print("HERE1")
       df2 = rbind(df2, cbind("combination" = paste(comb, collapse="_"), "Fold1"=auc[1,1], "Fold2"=auc[1,2], "Fold3"=auc[1,3], "Fold4"=auc[1,4], "Fold5" = auc[1,5], "Average" = auc[1,6]))
     } 
       else if (any(is.na(neg_counts)) & any(!is.na(pos_counts))) {
@@ -305,12 +300,12 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
       auc = df_test %>% group_by(Fold) %>% summarize(AUC = as.numeric(pROC::auc(pROC::roc(Condition, as.numeric(Score),direction = "<"))), .groups = "drop") %>% pivot_wider(names_from = "Fold", values_from = "AUC")
       colnames(auc) <- c("Fold1", "Fold2", "Fold3", "Fold4", "Fold5")
       auc$Average <- rowMeans(auc)
-      print("HERE2")
-      print(auc)
-      print(df2)
+      #print("HERE2")
+      #print(auc)
+      #print(df2)
       df_temp = cbind("combination" = paste(comb, collapse="_"), "Fold1"=auc[1,1], "Fold2"=auc[1,2], "Fold3"=auc[1,3], "Fold4"=auc[1,4], "Fold5" = auc[1,5], "Average" = auc[1,6])
       df2 = rbind(df2, cbind("combination" = paste(comb, collapse="_"), "Fold1"=auc[1,1], "Fold2"=auc[1,2], "Fold3"=auc[1,3], "Fold4"=auc[1,4], "Fold5" = auc[1,5], "Average" = auc[1,6]))
-      print(df2)
+      #print(df2)
     } 
       else {
       df_test = merge(neg_counts, metadata, by.x="row.names", by.y="Sample")
@@ -324,20 +319,20 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
   
   while (!is.na(best_auc)){
     sorted_df = df2 %>% as.data.frame()%>% filter(as.numeric(Average) > best_auc) %>% arrange(desc(Average))
+    print(sorted_df[1,1])
     new_start = unlist(str_split(sorted_df[1,1], "_"))
     new_rest = starts[!(starts %in% new_start)]
-    print(new_rest)
-    df2 = matrix(ncol=7,NA)
+    #print(new_rest)
+    df2 = data.frame(matrix(ncol=7, nrow = 0))
     colnames(df2)=c("combination","Fold1", "Fold2", "Fold3", "Fold4", "Fold5", "Average")
     best_auc = as.numeric(sorted_df[1,7])
     plot_df = rbind(plot_df, cbind("combination"=sorted_df[1,1], "Fold1"=sorted_df[1,2], "Fold2"=sorted_df[1,3], "Fold3"=sorted_df[1,4], "Fold4"=sorted_df[1,5], "Fold5" = sorted_df[1,6], "Average" = sorted_df[1,7]))
-    print(best_auc)
+    #print(best_auc)
     for (r in 1:length(new_rest)){
       
       comb = c(new_start,new_rest[r])
-      print(r)
-      pos = de_results[de_results$Direction == "Positive",] %>% filter(variable %in% comb) %>% pull(variable)
-      neg =de_results[de_results$Direction == "Negative",] %>% filter(variable %in% comb)%>% pull(variable)
+      pos = de_results[de_results$Direction == "Positive",] %>% filter(Symbol %in% comb) %>% pull(Symbol)
+      neg =de_results[de_results$Direction == "Negative",] %>% filter(Symbol %in% comb)%>% pull(Symbol)
       if (length(pos)==1){
         pos_counts =cpm_matrix[rownames(cpm_matrix) %in% pos,] %>% as.data.frame() %>% mutate_all(as.numeric) %>% set_colnames("pos_Score")
       } else if (length(pos)>1) {
@@ -357,7 +352,7 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
         neg_counts = NA
       }
       
-      if (any(!is.na(neg_counts)) && any(!is.na(pos_counts))){
+      if (any(!is.na(neg_counts)) & any(!is.na(pos_counts))){
         df_test = merge(pos_counts,neg_counts, by="row.names")
         df_test = merge(df_test, metadata, by.x="Row.names", by.y="Sample")
         df_test$Score = df_test$pos_Score - df_test$neg_Score
@@ -387,9 +382,3 @@ greedy_forward_search = function(gene.list, cpm_matrix, de_results, metadata) {
   }
   return(as.data.frame(plot_df))
 }
-
-  
-
-
-
-

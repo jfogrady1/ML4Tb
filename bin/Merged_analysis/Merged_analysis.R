@@ -257,7 +257,8 @@ ddsTest <- DESeqDataSetFromMatrix(countData = test_counts,
                                    colData = test_set, 
                                    design = ~ 1)
 
-
+saveRDS(ddsTest,file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Test_RAW_DESEQ2_matrix.rds")
+saveRDS(ddsTrain, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Train_RAW_DESEQ2_matrix.rds")
 
 
 vsdTrain <- vst(ddsTrain)
@@ -602,7 +603,7 @@ symbols_plot$PLOTSYMBOL
 
 res_df <- left_join(res_df, symbols_plot)
 View(res_df)
-write.table(res_df, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/DE_results_integrated.txt", sep = "\t", quote = FALSE)
+write.table(res_df, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/DE_results_integrated.txt", sep = "\t", quote = FALSE)
 
 
 # Plotting
@@ -764,8 +765,8 @@ test_edge_R_counts <- edgeR::DGEList(counts = test_adjusted_counts, group = test
 train_counts_cpms <- edgeR::cpm(train_edge_R_counts, log=FALSE)
 test_counts_cpms <- edgeR::cpm(test_edge_R_counts, log = FALSE)
 
-write.table(train_counts_cpms, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/train_CPM_filtered_counts.txt", sep = "\t", quote = FALSE)
-write.table(test_counts_cpms, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/test_CPM_filtered_counts.txt", sep = "\t", quote = FALSE)
+write.table(train_counts_cpms, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/train_CPM_filtered_counts.txt", sep = "\t", quote = FALSE)
+write.table(test_counts_cpms, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/test_CPM_filtered_counts.txt", sep = "\t", quote = FALSE)
 
 
 DE_genes_train_expressed_to_subset <- rownames(DE_genes_train_expressed)
@@ -797,6 +798,8 @@ ddsTest_adjusted  <- DESeqDataSetFromMatrix(countData = test_counts,
                                             colData = test_set, 
                                             design = ~ 1) # Note variables arent really important as not doing DE on them, just easy to copy and paste
 
+saveRDS(ddsTrain_adjusted, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Train_adjusted_DESEQ2_matrix.rds")
+write.table(test_counts,file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Test_counts.txt", row.names = F, quote = F)
 
 
 ddsTest_adjusted <- DESeq(ddsTest_adjusted)
@@ -882,30 +885,30 @@ ORA_results <- apply(ORA_results,2,as.character)
 train_normalised_filtered_counts <- as.data.frame(train_normalised_filtered_counts)
 train_normalised_filtered_counts$Condition <- factor(train_normalised_filtered_counts$Condition, labels = c("Control","Infected"))
 
-write.table(res_df, file ="/home/workspace/jogrady/ML4TB/work/merged/Temp_files/Training_DE_results.txt", sep = "\t", row.names = FALSE, quote =F )
-write.table(data.frame(ORA_results), file ="/home/workspace/jogrady/ML4TB/work/merged/Temp_files/ORA_training_set.txt", sep = "\t", row.names = FALSE, quote = F )
-write.table(train_set, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/train_data_manuscript.txt", sep = "\t", row.names = TRUE, quote =F)
-write.table(train_normalised_filtered_counts, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/train_normalised_filtered_counts.txt", sep = "\t", row.names = T)
-write.table(train_normalised_filtered_counts[custom_folds[[1]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/train_normalised_filtered_counts_Fold1.txt", sep = "\t", row.names = T)
-write.table(train_normalised_filtered_counts[custom_folds[[2]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/train_normalised_filtered_counts_Fold2.txt", sep = "\t", row.names = T)
-write.table(train_normalised_filtered_counts[custom_folds[[3]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/train_normalised_filtered_counts_Fold3.txt", sep = "\t", row.names = T)
-write.table(train_normalised_filtered_counts[custom_folds[[4]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/train_normalised_filtered_counts_Fold4.txt", sep = "\t", row.names = T)
-write.table(train_normalised_filtered_counts[custom_folds[[5]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/train_normalised_filtered_counts_Fold5.txt", sep = "\t", row.names = T)
+write.table(res_df, file ="/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Training_DE_results.txt", sep = "\t", row.names = FALSE, quote =F )
+write.table(data.frame(ORA_results), file ="/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/ORA_training_set.txt", sep = "\t", row.names = FALSE, quote = F )
+write.table(train_set, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/train_data_manuscript.txt", sep = "\t", row.names = TRUE, quote =F)
+write.table(train_normalised_filtered_counts, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/train_normalised_filtered_counts.txt", sep = "\t", row.names = T)
+write.table(train_normalised_filtered_counts[custom_folds[[1]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/train_normalised_filtered_counts_Fold1.txt", sep = "\t", row.names = T)
+write.table(train_normalised_filtered_counts[custom_folds[[2]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/train_normalised_filtered_counts_Fold2.txt", sep = "\t", row.names = T)
+write.table(train_normalised_filtered_counts[custom_folds[[3]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/train_normalised_filtered_counts_Fold3.txt", sep = "\t", row.names = T)
+write.table(train_normalised_filtered_counts[custom_folds[[4]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/train_normalised_filtered_counts_Fold4.txt", sep = "\t", row.names = T)
+write.table(train_normalised_filtered_counts[custom_folds[[5]],], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/train_normalised_filtered_counts_Fold5.txt", sep = "\t", row.names = T)
 
 
-write.table(test_normalised_filtered_counts, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/test_normalised_filtered_counts.txt", sep = "\t", row.names = T)
+write.table(test_normalised_filtered_counts, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/test_normalised_filtered_counts.txt", sep = "\t", row.names = T)
 
 length(custom_folds[[1]])
 
-write.table(train_control$index[[1]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/Fold1_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
-write.table(train_control$index[[2]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/Fold2_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
-write.table(train_control$index[[3]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/Fold3_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
-write.table(train_control$index[[4]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/Fold4_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
-write.table(train_control$index[[5]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/Fold5_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(train_control$index[[1]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Fold1_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(train_control$index[[2]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Fold2_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(train_control$index[[3]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Fold3_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(train_control$index[[4]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Fold4_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(train_control$index[[5]], file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Fold5_integers.txt", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
 
 test_set
-write.table(test_set, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/Test_set_manuscript.txt", sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
+write.table(test_set, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Test_set_manuscript.txt", sep = "\t", row.names = FALSE, col.names = TRUE, quote = FALSE)
 dim(train_normalised_filtered_counts)
 ####################################################
 ####################################################
@@ -1286,6 +1289,7 @@ tst$specificities
 
 GLMENET_ROC
 
+colnames(train_normalised_filtered_counts)[1:10]
 ####################################################
 ####################################################
 ####################################################
@@ -1304,16 +1308,17 @@ model_weights <- ifelse(train_normalised_filtered_counts$Condition == names(tabl
                         (1/table(train_normalised_filtered_counts$Condition)[2]) * 0.5)
 model_weights
 
+
 set.seed(42)
-nnet<- train(Condition ~ ., data = train_normalised_filtered_counts, 
+nnet<- train(Condition ~ ., data = train_normalised_filtered_counts[,c(colnames(train_normalised_filtered_counts)[1:300], "Condition")], 
              method = "nnet",           
              trControl = train_control,
              metric = "ROC",
-             maxit=250,
+             maxit=10,
              MaxNWts = 150000,
              trace = FALSE,
-             tuneGrid=expand.grid(size = c(2,3,4,5,6,7,8,9,10), 
-                                  decay = 10^seq(-9,0,by = 1)), 
+             tuneGrid=expand.grid(size = 8, 
+                                  decay = 0.01), 
              na.action = "na.omit",
              allowParallel = FALSE,
              weights = model_weights)
@@ -1323,6 +1328,7 @@ saveRDS(nnet, "/home/workspace/jogrady/ML4TB/work/merged/Models/MLP_model.rds")
 nnet = readRDS("/home/workspace/jogrady/ML4TB/work/merged/Models/MLP_model.rds")
 nnet_train_ROC <- CV_ROC_plot(nnet)
 nnet_train_ROC
+nnet
 ggsave("/home/workspace/jogrady/ML4TB/work/merged/figures/Train_CV_results/MLP_train_ROC.pdf", width = 12, height = 12, dpi = 600)
 nnet_predict <- predict(nnet, test_normalised_filtered_counts, type="prob") %>% mutate(Model = "NNET")
 nnet_predict
@@ -1362,6 +1368,27 @@ model_order <- Train_dot_plot %>%
   summarise(mean_ROC = mean(ROC)) %>%
   arrange(mean_ROC) %>%
   pull(Model)
+Train_dot_plot
+
+GLM_model$resample
+GLMRIDGE_model$resample
+GLMLASSO_model$resample
+GLMENET_model$resample
+NB_model$resample
+RF$resample
+RF_ET$resample
+nnet$resample
+
+
+GLM_model
+GLMRIDGE_model
+GLMLASSO_model
+GLMENET_model
+NB_model
+RF
+RF_ET
+nnet
+
 
 Train_dot_plot$Model <- factor(Train_dot_plot$Model, levels = model_order)
 
@@ -1375,7 +1402,7 @@ ggplot(Train_dot_plot, aes(x = ROC, y = Model, color = Resample, group = Model))
        y = "Model") +
   theme(legend.position = c(0.2,0.7))
 ggsave("/home/workspace/jogrady/ML4TB/work/merged/figures/Train_CV_results/Train_CV_ROC_dotplot.pdf", width = 12, height = 12, dpi = 600)
-write.table(Train_dot_plot, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files/Train_dot_plot_results.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+write.table(Train_dot_plot, file = "/home/workspace/jogrady/ML4TB/work/merged/Temp_files2/Train_dot_plot_results.txt", sep = "\t", quote = FALSE, row.names = FALSE)
 
 NB_predict
 
@@ -1458,22 +1485,23 @@ resample_colors <- ggsci::pal_npg("nrc")(length(roc_values$roc_values))
 ################################################
 # Heatmap based on thresholds
 ################################################
+class(test)
+head(test)
+#test %>% group_by(Model) %>%
+ # summarise(
+  #  roc_values = as.numeric(pROC::roc(
+   #   response = ifelse(Condition == "Infected", 1, 0),
+    #  predictor = Infected,
+     # quiet = TRUE
+    #)),
+    #AUC_CI_lower = (pROC::ci(pROC::roc(Condition, Infected)))[1],
+    #AUC_CI_upper = (pROC::ci(pROC::roc(Condition, Infected)))[3])
 
-test %>% group_by %>%
-  summarise(
-    roc_values = as.numeric(pROC::roc(
-      response = ifelse(Condition == "Infected", 1, 0),
-      predictor = Infected,
-      quiet = TRUE
-    )),
-    AUC_CI_lower = (pROC::ci(pROC::roc(Condition, Infected)))[1],
-    AUC_CI_upper = (pROC::ci(pROC::roc(Condition, Infected)))[3])
 
-
-ROC = test %>% group_by(Model) %>% pROC::roc(.,
-  response = Condition,
-  predictor = Infected,
-  quiet = TRUE)
+#ROC = test %>% group_by(Model) %>% pROC::roc(.,
+ # response = Condition,
+  #predictor = Infected,
+  #quiet = TRUE)
 
 GLM_predict <- cbind(GLM_predict, test_set) 
 GLMRIDGE_predict <- cbind(GLMRIDGE_predict, test_set) 
@@ -1605,176 +1633,4 @@ pheatmap(t(thresholds_df),
          color = c("lightblue", "orange"))
 
 graphics.off()
-
-GLM_final_threshold = GLM_thresholds %>% filter(Sens > 0.7) %>% filter(Spec > 0.1) %>% filter(Combined == max(Combined)) %>% slice_max(Sens)
-GLMRIDGE_final_threshold = GLMRIDGE_thresholds %>% filter(Sens > 0.9) %>% filter(Combined == max(Combined)) %>% slice_max(Sens)
-GLMLASSO_final_threshold = GLMLASSO_thresholds %>% filter(Sens > 0.9) %>% filter(Combined == max(Combined)) %>% slice_max(Sens)
-GLMENET_final_threshold = GLMENET_thresholds %>% filter(Sens > 0.9) %>% filter(Combined == max(Combined)) %>% slice_max(Sens)
-RF_final_threshold = RF_thresholds %>% filter(Sens > 0.9) %>% filter(Combined == max(Combined)) %>% slice_max(Sens)
-RF_ET_final_threshold = RF_ET_thresholds %>% filter(Sens > 0.9) %>% filter(Combined == max(Combined)) %>% slice_max(Sens)
-nnet_final_thresholds = nnet_thresholds %>% filter(Sens > 0.9) %>% filter(Combined == max(Combined)) %>% slice_max(Sens)
-NB_final_thresholds = NB_thresholds %>% filter(Sens > 0.9) %>% filter(Combined == max(Combined)) %>% slice_max(Sens)
-
-GLM_final_threshold
-NB_final_thresholds
-GLMRIDGE_final_threshold
-RF_final_threshold
-RF_ET_final_threshold
-nnet_final_thresholds
-GLMLASSO_final_threshold
-GLMENET_final_threshold
-GLMLASSO_final_threshold = GLMLASSO_thresholds %>% filter(Sens > 0.9)
-GLMLASSO_final_threshold
-####################################################
-####################################################
-####################################################
-
-
-# Greedy Forward Search --> MODEL 8
-
-####################################################
-####################################################
-###################################################
-
-DE_genes_train_expressed_to_subset
-
-
-GFS = greedy_forward_search(DE_genes_train_expressed_to_subset, train_counts_cpms,de_results = DE_genes_train_expressed, metadata = train_set)
-GFS
-
-write.table(GFS, file = "/home/workspace/jogrady/ML4TB/work/merged/Models/GFS_results_table.txt", sep = "\t")
-
-
-
-GFS2_genes <- GFS$combination
-GFS2_genes
-GFS2_genes <- GFS2_genes[4] # top
-GFS2_genes <- unlist(str_split(GFS2_genes, pattern = "_"))
-GFS2_POS <- Pos_genes[Pos_genes %in% GFS2_genes]
-GFS2_NEG <- Neg_genes[Neg_genes%in% GFS2_genes]
-GFS2_POS
-GFS2_NEG
-
-train_TB_score <- ScoreGenesMtx(train_counts_cpms, pos.genes = GFS2_POS, neg.genes = GFS2_NEG)
-
-train_TB_score
-
-train_TB_score <- cbind(train_TB_score, train_set)
-head(train_TB_score)
-
-
-train_TB_score$Condition <- factor(train_TB_score$Condition, levels = c(0,1), labels = c("bTB-", "bTB+"))
-train_TB_score$train_TB_score
-ggplot(train_TB_score, aes(x = factor(Condition, labels = c("bTB-", "bTB+")), y = as.numeric(train_TB_score), fill = Condition)) + geom_boxplot(alpha = 0.25, outlier.colour = NA) + geom_jitter(position = position_jitter(width = 0.15), size = 2) +
-  labs(x="Condition", y = "TB score") + 
-  theme_bw() +
-  scale_fill_manual(values = c("#2166ac", "#b2182b")) +
-  theme(axis.text.x = element_text(angle = 0, size = 15, colour = "black"),
-        axis.text.y = element_text(angle = 0, size = 15, colour = "black"),
-        legend.text = element_text(size = 15, colour = "black"),
-        axis.title.x = element_text(size = 18, colour = "black"),
-        axis.title.y = element_text(size = 18, color = "black"),
-        legend.position="none") + stat_compare_means(method = "wilcox.test", label.x = 1.5, label.y = 3, tip.length=0) +  geom_segment(aes(x = 1, y = 2.8, xend = 2, yend = 2.8))
-
-
-
-AUC = as.numeric(pROC::auc(pROC::roc(train_TB_score$Condition, as.numeric(train_TB_score$train_TB_score))))
-
-AUC
-
-
-ggsave("/home/workspace/jogrady/ML4TB/work/merged/figures/TB_train_score_top_result.pdf", width = 12, height = 12, dpi = 600)
-
-
-
-
-test_TB_score <- ScoreGenesMtx(test_counts_cpms, pos.genes = GFS2_POS, neg.genes = GFS2_NEG)
-test_TB_score
-test_TB_score <- cbind(test_TB_score, test_set)
-
-test_TB_score$Condition <- factor(test_TB_score$Condition, levels = c("Control","Infected"), labels = c("bTB-", "bTB+"))
-
-test_TB_score
-ggplot(test_TB_score, aes(x = Condition, y = as.numeric(test_TB_score), fill = Condition)) + geom_boxplot(alpha = 0.25, outlier.colour = NA) + geom_jitter(position = position_jitter(width = 0.15), size = 2) +
-  labs(x="Condition", y = "TB score") + 
-  theme_bw() +
-  scale_fill_manual(values = c("#2166ac", "#b2182b")) +
-  theme(axis.text.x = element_text(angle = 0, size = 15, colour = "black"),
-        axis.text.y = element_text(angle = 0, size = 15, colour = "black"),
-        legend.text = element_text(size = 15, colour = "black"),
-        axis.title.x = element_text(size = 18, colour = "black"),
-        axis.title.y = element_text(size = 18, color = "black"),
-        legend.position="none")
-
-AUC = as.numeric(pROC::auc(pROC::roc(test_TB_score$Condition, as.numeric(test_TB_score$test_TB_score))))
-
-AUC
-
-####################################################
-####################################################
-####################################################
-
-
-# Collecting all results together
-
-####################################################
-####################################################
-####################################################
-
-
-
-
-
-test <- rbind(GLM_predict, GLMRIDGE_predict, GLMLASSO_predict, GLMENET_predict, RF_predict, RF_ET_predict, nnet_predict, NB_predict)
-real_test <- ROC_test_combined(test, test_set$Condition)
-
-real_test
-
-ggsave("/home/workspace/jogrady/ML4TB/work/merged/figures/Train_CV_results/TEST_ROC.pdf", width = 12, height = 12, dpi = 600)
-
-
-
-test
-
-
-
-
-###############################
-# Assessing comparison between experimental versus natural infection ROC
-###############################
-
-train_comparison_metadata <- train_set # data with actual training data
-train_comparison_metadata$rowIndex <- c(1:nrow(train_comparison_metadata))
-train_comparison_metadata$Condition <- if_else(train_comparison_metadata$Condition == 0, "Control", "Infected")
-train_comparison_metadata$Condition <- factor(train_comparison_metadata$Condition)
-head(train_comparison_metadata)
-
-train_comparison_metadata <- train_comparison_metadata %>% select(2,3,4,5,6,7,8,9,11)
-
-
-GLM_model_pred_train <- GLM_model$pred %>% select(c(pred,obs,Control, Infected, rowIndex, Resample)) %>% mutate(Model = "GLM_model")
-GLMRIDGE_model_pred_train <- GLMRIDGE_model$pred %>% select(c(pred,obs,Control, Infected, rowIndex, Resample)) %>% mutate(Model = "Ridge")
-GLMLASSO_model_pred_train <- GLMLASSO_model$pred %>% select(c(pred,obs,Control, Infected, rowIndex, Resample)) %>% mutate(Model = "Lasso")
-GLMENET_model_pred_train <- GLMENET_model$pred %>% select(c(pred,obs,Control, Infected, rowIndex, Resample)) %>% mutate(Model = "ENET")
-RF_model_pred_train <- RF$pred %>% select(c(pred,obs,Control, Infected, rowIndex, Resample)) %>% mutate(Model = "RF")
-RF_ET_model_pred_train <- RF_ET$pred %>% select(c(pred,obs,Control, Infected, rowIndex, Resample)) %>% mutate(Model = "RF-ET")
-NB_model_pred_train <- NB_model$pred %>% select(c(pred,obs,Control, Infected, rowIndex, Resample)) %>% mutate(Model = "NB")
-MLP_model_pred_train <- nnet$pred %>% select(c(pred,obs,Control, Infected, rowIndex, Resample)) %>% mutate(Model = "MLP")
-
-
-
-ROC_test <- rbind(GLM_model_pred_train, GLMRIDGE_model_pred_train,
-                  GLMLASSO_model_pred_train, GLMENET_model_pred_train, RF_model_pred_train, RF_ET_model_pred_train, MLP_model_pred_train, NB_model_pred_train)
-
-ROC_test <- left_join(ROC_test, train_comparison_metadata)
-
-
-ROC_test %>% group_by(Model, Resample, Infection_administration) %>%
-  summarize(roc_values = as.numeric(pROC::roc(
-  response = ifelse(Condition == "Infected", 1, 0),
-  predictor = Infected,
-  quiet = TRUE
-)$auc))%>% ggplot(aes(x = Model, y = roc_values, fill = Infection_administration, col = Infection_administration)) + geom_boxplot(outlier.colour = NA, alpha = 0.15) + geom_point(aes(shape = Resample, group = Infection_administration), 
-                                                                                                                                                   position=position_jitterdodge(jitter.width = 0),size = 4) + theme_bw() + scale_colour_npg() + scale_fill_npg() 
-ggsave("/home/workspace/jogrady/ML4TB/work/merged/figures/Train_CV_results/Natural_V_Experimental.ROC.pdf", width = 12, height = 8, dpi = 600)
                     
