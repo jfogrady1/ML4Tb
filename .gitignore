@@ -7,3 +7,4 @@ bin/.*
 work/*
 Zenodo/*
 snktest/*
+software/*
