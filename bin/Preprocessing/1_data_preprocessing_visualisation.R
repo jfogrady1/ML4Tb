@@ -5,10 +5,7 @@ library(ggplot2)
 library(data.table)
 library(ggthemes)
 
-length(expressed_genes)
-head(all_combined_lfc)
-
-head(res_kirsten_all)
+args = commandArgs(trailingOnly=TRUE)
 
 theme_Publication <- function(base_size=12, base_family = "sans") {
       library(grid)
@@ -40,26 +37,24 @@ theme_Publication <- function(base_size=12, base_family = "sans") {
 }
 
 
-ogrady_data_raw <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/RAW/count_matrix_clean.txt")
-wiarda_data_raw <- fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/wiarda/Quantification/wiarda_count_matrix_clean.txt")
-kirsten_data_raw <- fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten/Quantification/kirsten_count_matrix_clean.txt")
-kirsten_pbl_raw <- fread("/home/workspace/jogrady/ML4TB/work/RNA_seq/kirsten_pbl/Quantification/kirsten_pbl_count_matrix_clean.txt")
+ogrady_data_raw <- fread(args[1])
+wiarda_data_raw <- fread(args[2])
+kirsten_data_raw <- fread(args[3])
+kirsten_pbl_raw <- fread(args[4])
 
-kirsten_ge
 
-input_mcloughlin_pbl_down
 # Covariate data
 # Labels and wrangling
-ogrady_covariate <- read.table("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/covariate_RNA_seq.txt", header = TRUE)
-wiarda_covariate <- fread("/home/workspace/jogrady/ML4TB/data/wiarda/wiarda_samples.csv")
-kirsten_covariate <- fread("/home/workspace/jogrady/ML4TB/data/kirsten/kirsten_samples.csv")
+ogrady_covariate <- read.table(args[5], header = TRUE)
+wiarda_covariate <- fread(args[6])
+kirsten_covariate <- fread(args[7])
 kirsten_covariate <- kirsten_covariate[!duplicated(kirsten_covariate$Animal_Code),] 
 kirsten_covariate <- kirsten_covariate %>% select(3,4,5)
 
 
 
 
-kirsten_pbl_covariate <- fread("/home/workspace/jogrady/ML4TB/data/kirsten_pbl/kirsten_pbl_samples.csv")
+kirsten_pbl_covariate <- fread(args[8])
 kirsten_pbl_covariate
 
 
@@ -74,7 +69,7 @@ dds_ogrady_full <- DESeqDataSetFromMatrix(countData = ogrady_data_raw,
 
 
 dds_ogrady_full_vst <- vst(dds_ogrady_full)
-saveRDS(dds_ogrady_full_vst, file = "/home/workspace/jogrady/ML4TB/work/normalisation/ogrady_dds_vst.rds")
+saveRDS(dds_ogrady_full_vst, file = args[9])
 
 
 
@@ -89,7 +84,7 @@ ogrady_all_samples_ggplot <- ggplot(dds_ogrady_full_pca_data, aes(PC1, PC2, colo
   ylab(paste0("PC2: ",percentVar[2],"% variance")) + xlim(-30, 30) + ylim(-30,30) + scale_colour_manual(labels = c("Control", "Infected"), values = c("#386cb0", "#662506")) + theme_Publication() + labs(colour = "Status") + ggtitle("All samples")
 ogrady_all_samples_ggplot
 
-ggsave2("/home/workspace/jogrady/ML4TB/work/normalisation/Figures/ogrady_PCA.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[10], width = 12, height = 12, dpi = 600)
 
 ### Here we will focus on Wiarda
 ### INfer sex
@@ -107,13 +102,13 @@ dds_wiarda_full <- DESeqDataSetFromMatrix(countData = wiarda_data_raw,
 
 dds_wiarda_full_vst <- vst(dds_wiarda_full)
 
-saveRDS(dds_wiarda_full_vst, file = "/home/workspace/jogrady/ML4TB/work/normalisation/wiarda_dds_vst.rds")
+saveRDS(dds_wiarda_full_vst, file = args[11])
 
 dds_wiarda_full_vst[,dds_wiarda_full_vst$Week == "W0" | dds_wiarda_full_vst$Week == "W4"]
 
 
 
-dds_wiarda_full_test <- readRDS("/home/workspace/jogrady/ML4TB/work/normalisation/wiarda_dds_vst.rds")
+dds_wiarda_full_test <- readRDS(args[11])
 
 
 
@@ -172,7 +167,7 @@ legend <- get_legend(
 )
 plot_grid(wiarda_row, legend, rel_widths = c(1, .15))
 
-ggsave2("/home/workspace/jogrady/ML4TB/work/normalisation/Figures/wiarda_PCA.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[12], width = 12, height = 12, dpi = 600)
 
 
 
@@ -190,7 +185,7 @@ dds_kirsten_full <- DESeqDataSetFromMatrix(countData = kirsten_data_raw,
 
 
 dds_kirsten_full_vst <- vst(dds_kirsten_full)
-saveRDS(dds_wiarda_full_vst, file = "/home/workspace/jogrady/ML4TB/work/normalisation/kirsten_dds_vst.rds")
+saveRDS(dds_kirsten_full_vst, file = args[13])
 dds_kirsten_full
 
 
@@ -273,7 +268,7 @@ legend <- get_legend(
 )
 plot_grid(kirsten_row, legend, rel_widths = c(1, .15))
 
-ggsave2("/home/workspace/jogrady/ML4TB/work/normalisation/Figures/kirsten_PCA.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[14], width = 12, height = 12, dpi = 600)
 
 
 
@@ -294,7 +289,7 @@ dds_kirsten_pbl_full <- DESeqDataSetFromMatrix(countData = kirsten_pbl_raw,
 
 
 dds_kirsten_pbl_full_vst <- vst(dds_kirsten_pbl_full)
-saveRDS(dds_kirsten_pbl_full_vst, file = "/home/workspace/jogrady/ML4TB/work/normalisation/kirsten_pbl_dds_vst.rds")
+saveRDS(dds_kirsten_pbl_full_vst, file = args[15])
 dds_kirsten_pbl_full
 
 
@@ -310,7 +305,7 @@ kirsten_pbl_all_samples_ggplot <- ggplot(dds_kirsten_pbl_full_pca_data, aes(PC1,
   xlim(-30, 30) + ylim(-30,30) + scale_colour_manual(labels = c("Control", "Infected"), values = c("#386cb0", "#662506")) + theme_Publication() + ggtitle("All samples")
 kirsten_pbl_all_samples_ggplot
 
-ggsave2("/home/workspace/jogrady/ML4TB/work/normalisation/Figures/kirsten_pbl_PCA.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[16], width = 12, height = 12, dpi = 600)
 
 
 ##################################
@@ -318,60 +313,60 @@ ggsave2("/home/workspace/jogrady/ML4TB/work/normalisation/Figures/kirsten_pbl_PC
 
 
 # Write VST files
-wiarda_counts_normalised  <- assay(dds_wiarda_full_vst)
-kirsten_counts_normalised  <- assay(dds_kirsten_full_vst)
-kirsten_pbl_counts_normalised  <- assay(dds_kirsten_pbl_full_vst)
+#wiarda_counts_normalised  <- assay(dds_wiarda_full_vst)
+#kirsten_counts_normalised  <- assay(dds_kirsten_full_vst)
+#kirsten_pbl_counts_normalised  <- assay(dds_kirsten_pbl_full_vst)
 
 
 
 
 
-ensemble <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf")
-ensemble <- ensemble %>% filter(V3 == "gene")
-head(ensemble)
-ensemble <- ensemble %>% separate(., V9, into = c("gene_id", "gene_version", "gene_name"), sep = ";")
-ensemble$gene_id <- gsub("^gene_id ", "", ensemble$gene_id)
-ensemble$gene_id <- gsub('"', '', ensemble$gene_id)
-ensemble$gene_name <- gsub("gene_name ", "", ensemble$gene_name)
-ensemble$gene_name <- gsub("gene_source ", "", ensemble$gene_name)
-ensemble$gene_name <- gsub('"', '', ensemble$gene_name)
+#ensemble <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf")
+#ensemble <- ensemble %>% filter(V3 == "gene")
+#head(ensemble)
+#ensemble <- ensemble %>% separate(., V9, into = c("gene_id", "gene_version", "gene_name"), sep = ";")
+#ensemble$gene_id <- gsub("^gene_id ", "", ensemble$gene_id)
+#ensemble$gene_id <- gsub('"', '', ensemble$gene_id)
+#ensemble$gene_name <- gsub("gene_name ", "", ensemble$gene_name)#
+#ensemble$gene_name <- gsub("gene_source ", "", ensemble$gene_name)
+#ensemble$gene_name <- gsub('"', '', ensemble$gene_name)
 
-ensemble$gene_name <- if_else(ensemble$gene_name == " ensembl", ensemble$gene_id, ensemble$gene_name)
-ensemble$gene_name <- if_else(ensemble$gene_name == " 5S_rRNA", ensemble$gene_id, ensemble$gene_name)
-colnames(ensemble)[1] <- "chr"
-ensemble <- ensemble %>% dplyr::select(gene_id, gene_name, chr, V4)
-colnames(ensemble)[4] <- "pos"
-ensemble <- ensemble %>% select(1:2)
-
-
-head(duplicated(ensemble$gene_name))
-ensemble$gene_name <- if_else(duplicated(ensemble$gene_name), ensemble$gene_id, ensemble$gene_name)
-head(ensemble,20)
-
-table(duplicated(ensemble$gene_name))
-
-rownames(wiarda_counts_normalised)
-tested_genes <- data.frame(rownames(wiarda_data_raw))
-colnames(tested_genes) <- "gene_id"
-head(tested_genes$gene_id,20)
-head(ensemble$gene_name,20)
-
-all(tested_genes$gene_id == ensemble$gene_id)
-ensemble$gene_name <- gsub(' ', '', ensemble$gene_name)
-ensemble$gene_id <- gsub(' ', '', ensemble$gene_id)
-head(tested_genes$gene_id,20)
-head(ensemble$gene_id,20)
-
-tested_genes <- left_join(tested_genes, ensemble, by = c("gene_id" = "gene_id"))
-
-head(wiarda_counts_normalised)
-tested_genes$gene_id
-rownames(wiarda_counts_normalised) <- tested_genes$gene_name
-rownames(kirsten_counts_normalised) <- tested_genes$gene_name
-rownames(kirsten_pbl_counts_normalised) <- tested_genes$gene_name
+#ensemble$gene_name <- if_else(ensemble$gene_name == " ensembl", ensemble$gene_id, ensemble$gene_name)
+#ensemble$gene_name <- if_else(ensemble$gene_name == " 5S_rRNA", ensemble$gene_id, ensemble$gene_name)
+#colnames(ensemble)[1] <- "chr"
+#ensemble <- ensemble %>% dplyr::select(gene_id, gene_name, chr, V4)
+#colnames(ensemble)[4] <- "pos"
+#ensemble <- ensemble %>% select(1:2)
 
 
+#head(duplicated(ensemble$gene_name))
+#ensemble$gene_name <- if_else(duplicated(ensemble$gene_name), ensemble$gene_id, ensemble$gene_name)
+#head(ensemble,20)
 
-write.table(wiarda_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/wiarda_vst_normalised_data.txt", quote = FALSE, sep = "\t")
-write.table(kirsten_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/kirsten_vst_normalised_data.txt", quote = FALSE, sep = "\t")
-write.table(kirsten_pbl_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/kirsten_pbl_vst_normalised_data.txt", quote = FALSE, sep = "\t")
+#table(duplicated(ensemble$gene_name))
+
+#rownames(wiarda_counts_normalised)
+#tested_genes <- data.frame(rownames(wiarda_data_raw))
+#colnames(tested_genes) <- "gene_id"
+#head(tested_genes$gene_id,20)
+#head(ensemble$gene_name,20)
+
+#all(tested_genes$gene_id == ensemble$gene_id)
+#ensemble$gene_name <- gsub(' ', '', ensemble$gene_name)
+#ensemble$gene_id <- gsub(' ', '', ensemble$gene_id)
+#head(tested_genes$gene_id,20)
+#head(ensemble$gene_id,20)
+
+#tested_genes <- left_join(tested_genes, ensemble, by = c("gene_id" = "gene_id"))
+
+#head(wiarda_counts_normalised)
+#tested_genes$gene_id
+#rownames(wiarda_counts_normalised) <- tested_genes$gene_name
+#rownames(kirsten_counts_normalised) <- tested_genes$gene_name
+#rownames(kirsten_pbl_counts_normalised) <- tested_genes$gene_name
+
+
+
+#write.table(wiarda_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/wiarda_vst_normalised_data.txt", quote = FALSE, sep = "\t")
+#write.table(kirsten_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/kirsten_vst_normalised_data.txt", quote = FALSE, sep = "\t")
+#write.table(kirsten_pbl_counts_normalised, "/home/workspace/jogrady/ML4TB/work/normalisation/vst_individual/kirsten_pbl_vst_normalised_data.txt", quote = FALSE, sep = "\t")

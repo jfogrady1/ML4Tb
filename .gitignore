@@ -6,3 +6,4 @@ bin/software/*
 bin/.*
 work/*
 Zenodo/*
+snktest/*
